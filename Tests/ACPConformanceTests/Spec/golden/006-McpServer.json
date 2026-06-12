@@ -1,0 +1,11 @@
+{
+  "type": "sse",
+  "name": "sse-server",
+  "url": "https://sse.example.com/events",
+  "headers": [
+    {
+      "name": "X-API-Key",
+      "value": "apikey456"
+    }
+  ]
+}

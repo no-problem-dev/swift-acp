@@ -1,0 +1,15 @@
+{
+  "type": "http",
+  "name": "http-server",
+  "url": "https://api.example.com",
+  "headers": [
+    {
+      "name": "Authorization",
+      "value": "Bearer token123"
+    },
+    {
+      "name": "Content-Type",
+      "value": "application/json"
+    }
+  ]
+}

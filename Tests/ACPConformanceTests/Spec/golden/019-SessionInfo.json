@@ -1,0 +1,8 @@
+{
+  "sessionId": "sess_abc123",
+  "cwd": "/home/user/project",
+  "additionalDirectories": [
+    "/home/user/shared-lib",
+    "/home/user/product-docs"
+  ]
+}

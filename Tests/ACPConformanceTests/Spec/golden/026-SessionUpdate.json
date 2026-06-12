@@ -1,0 +1,8 @@
+{
+  "sessionUpdate": "agent_message_chunk",
+  "messageId": "msg_agent_c42b9",
+  "content": {
+    "type": "text",
+    "text": "Hello"
+  }
+}

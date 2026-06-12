@@ -1,0 +1,11 @@
+{
+  "name": "test-server",
+  "command": "/usr/bin/server",
+  "args": ["--port", "3000"],
+  "env": [
+    {
+      "name": "API_KEY",
+      "value": "secret123"
+    }
+  ]
+}
