@@ -2,6 +2,10 @@ import Foundation
 import ACPCore
 
 /// A classified incoming JSON-RPC frame.
+///
+/// The codec produces one of these values for every frame received over the
+/// transport. A dispatch loop matches on the case to route requests,
+/// notifications, and correlated responses.
 public enum JSONRPCFrame: Sendable {
     case request(id: RequestId, method: String, params: JSONValue?)
     case notification(method: String, params: JSONValue?)
@@ -44,8 +48,11 @@ public struct JSONRPCCodec: Sendable {
         }
     }
 
-    /// Re-encode a typed payload into the `JSONValue` carried as `params`/`result`.
-    public func value(_ payload: some Encodable) throws -> JSONValue {
+    /// Convert a typed payload to the `JSONValue` form carried as `params`/`result`.
+    ///
+    /// Round-trips the value through JSON encoding, producing a `JSONValue`
+    /// tree that can be embedded in a JSON-RPC frame.
+    public func jsonValue(from payload: some Encodable) throws -> JSONValue {
         try decoder.decode(JSONValue.self, from: try encoder.encode(payload))
     }
 
@@ -54,18 +61,22 @@ public struct JSONRPCCodec: Sendable {
         try decoder.decode(T.self, from: try encoder.encode(value ?? .null))
     }
 
+    /// Encode a JSON-RPC request frame.
     public func encodeRequest(id: RequestId, method: String, params: JSONValue?) throws -> Data {
         try encoder.encode(JSONRPCRequest(id: id, method: method, params: params))
     }
 
+    /// Encode a JSON-RPC notification frame (no id, no reply expected).
     public func encodeNotification(method: String, params: JSONValue?) throws -> Data {
         try encoder.encode(JSONRPCNotification(method: method, params: params))
     }
 
+    /// Encode a successful JSON-RPC response frame.
     public func encodeSuccess(id: RequestId, result: JSONValue) throws -> Data {
         try encoder.encode(JSONRPCResponse.success(id: id, result: result))
     }
 
+    /// Encode a JSON-RPC error response frame.
     public func encodeFailure(id: RequestId, error: RPCError) throws -> Data {
         try encoder.encode(JSONRPCResponse<JSONValue>.failure(id: id, error: error))
     }

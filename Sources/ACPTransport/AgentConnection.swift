@@ -22,12 +22,27 @@ public actor AgentConnection {
         self.transport = transport
     }
 
-    /// Provide the agent, built with the `RemoteClient` it should report to.
+    /// Wire up the agent before starting the read loop.
+    ///
+    /// Call this once before `run()`. The `makeAgent` closure receives the
+    /// `RemoteClient` the agent should use to send `session/update`
+    /// notifications and make `fs/*`/`terminal/*` requests back to the client.
+    ///
+    /// - Parameter makeAgent: A closure that returns the concrete `ACPAgent`
+    ///   implementation, bound to the provided client proxy.
     public func start(makeAgent: (any ACPClient) -> any ACPAgent) {
         agent = makeAgent(RemoteClient(connection: self))
     }
 
-    /// Run the read/dispatch loop until the transport closes.
+    /// Run the read/dispatch loop until the transport closes or throws.
+    ///
+    /// Reads frames from the transport, classifies each one, and dispatches it
+    /// to the agent (for client → agent requests/notifications) or resolves a
+    /// pending continuation (for agent → client responses). When the transport
+    /// ends, all outstanding pending requests are cancelled with
+    /// `ACPTransportError.closed`.
+    ///
+    /// Call `start(makeAgent:)` before calling `run()`.
     public func run() async throws {
         for try await frame in transport.messages() {
             let classified = try codec.decode(frame)
@@ -77,29 +92,29 @@ public actor AgentConnection {
         func decode<T: Decodable>(_ type: T.Type) throws -> T { try codec.decodePayload(type, from: params) }
         switch method {
         case ACPMethod.Agent.initialize:
-            return try codec.value(try await agent.initialize(decode(InitializeRequest.self)))
+            return try codec.jsonValue(from: try await agent.initialize(decode(InitializeRequest.self)))
         case ACPMethod.Agent.authenticate:
-            return try codec.value(try await agent.authenticate(decode(AuthenticateRequest.self)))
+            return try codec.jsonValue(from: try await agent.authenticate(decode(AuthenticateRequest.self)))
         case ACPMethod.Agent.logout:
-            return try codec.value(try await agent.logout(decode(LogoutRequest.self)))
+            return try codec.jsonValue(from: try await agent.logout(decode(LogoutRequest.self)))
         case ACPMethod.Agent.sessionNew:
-            return try codec.value(try await agent.newSession(decode(NewSessionRequest.self)))
+            return try codec.jsonValue(from: try await agent.newSession(decode(NewSessionRequest.self)))
         case ACPMethod.Agent.sessionLoad:
-            return try codec.value(try await agent.loadSession(decode(LoadSessionRequest.self)))
+            return try codec.jsonValue(from: try await agent.loadSession(decode(LoadSessionRequest.self)))
         case ACPMethod.Agent.sessionList:
-            return try codec.value(try await agent.listSessions(decode(ListSessionsRequest.self)))
+            return try codec.jsonValue(from: try await agent.listSessions(decode(ListSessionsRequest.self)))
         case ACPMethod.Agent.sessionDelete:
-            return try codec.value(try await agent.deleteSession(decode(DeleteSessionRequest.self)))
+            return try codec.jsonValue(from: try await agent.deleteSession(decode(DeleteSessionRequest.self)))
         case ACPMethod.Agent.sessionResume:
-            return try codec.value(try await agent.resumeSession(decode(ResumeSessionRequest.self)))
+            return try codec.jsonValue(from: try await agent.resumeSession(decode(ResumeSessionRequest.self)))
         case ACPMethod.Agent.sessionClose:
-            return try codec.value(try await agent.closeSession(decode(CloseSessionRequest.self)))
+            return try codec.jsonValue(from: try await agent.closeSession(decode(CloseSessionRequest.self)))
         case ACPMethod.Agent.sessionSetMode:
-            return try codec.value(try await agent.setSessionMode(decode(SetSessionModeRequest.self)))
+            return try codec.jsonValue(from: try await agent.setSessionMode(decode(SetSessionModeRequest.self)))
         case ACPMethod.Agent.sessionSetConfigOption:
-            return try codec.value(try await agent.setSessionConfigOption(decode(SetSessionConfigOptionRequest.self)))
+            return try codec.jsonValue(from: try await agent.setSessionConfigOption(decode(SetSessionConfigOptionRequest.self)))
         case ACPMethod.Agent.sessionPrompt:
-            return try codec.value(try await agent.prompt(decode(PromptRequest.self)))
+            return try codec.jsonValue(from: try await agent.prompt(decode(PromptRequest.self)))
         default:
             let response = try await agent.ext(ExtRequest(method: method, params: params ?? .null))
             return response.params
@@ -157,7 +172,7 @@ private struct RemoteClient: ACPClient {
         _ request: some Encodable,
         as _: Response.Type
     ) async throws -> Response {
-        let result = try await connection.request(method: method, params: try codec.value(request))
+        let result = try await connection.request(method: method, params: try codec.jsonValue(from: request))
         return try codec.decodePayload(Response.self, from: result)
     }
 
@@ -186,7 +201,7 @@ private struct RemoteClient: ACPClient {
         try await call(ACPMethod.Client.terminalKill, request, as: KillTerminalResponse.self)
     }
     func sessionUpdate(_ notification: SessionNotification) async throws {
-        try await connection.notification(method: ACPMethod.Client.sessionUpdate, params: try codec.value(notification))
+        try await connection.notification(method: ACPMethod.Client.sessionUpdate, params: try codec.jsonValue(from: notification))
     }
     func ext(_ request: ExtRequest) async throws -> ExtResponse {
         ExtResponse(params: try await connection.request(method: request.method, params: request.params))

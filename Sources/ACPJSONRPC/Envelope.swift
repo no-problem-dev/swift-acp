@@ -1,4 +1,8 @@
-/// The JSON-RPC protocol version. Always `"2.0"` on the wire.
+/// The JSON-RPC protocol version sentinel.
+///
+/// The JSON-RPC 2.0 specification requires every message to include a
+/// `"jsonrpc": "2.0"` field. This enum models that single known value and
+/// ensures it round-trips correctly.
 public enum JSONRPCVersion: String, Codable, Sendable {
     case v2 = "2.0"
 }
