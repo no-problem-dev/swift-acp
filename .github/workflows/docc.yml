@@ -33,7 +33,8 @@ jobs:
         run: |
           swift package --allow-writing-to-directory ./docs \
             generate-documentation \
-            --target ACPCore \
+            --enable-experimental-combined-documentation \
+            --target ACPJSONRPC --target ACPCore --target ACPAgent --target ACPClient --target ACPTransport \
             --disable-indexing \
             --transform-for-static-hosting \
             --hosting-base-path swift-acp \
