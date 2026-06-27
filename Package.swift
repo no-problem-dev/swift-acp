@@ -18,6 +18,9 @@ let package = Package(
         .library(name: "ACPClient", targets: ["ACPClient"]),
         .library(name: "ACPTransport", targets: ["ACPTransport"]),
     ],
+    dependencies: [
+        .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.4.0"),
+    ],
     targets: [
         // JSON-RPC 2.0 envelope, decoupled from ACP domain types (mirrors src/rpc.rs).
         .target(name: "ACPJSONRPC"),
