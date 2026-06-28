@@ -1,56 +1,56 @@
 # ``ACPTransport``
 
-Concrete transport adapters that wire `ACPAgent` and `ACPClient` implementations to in-process channels or JSON-RPC-over-stdio for out-of-process interop.
+`ACPAgent` と `ACPClient` の実装をインプロセスチャネルまたは JSON-RPC-over-stdio に接続する具体的なトランスポートアダプタ。
 
 ## Overview
 
-`ACPTransport` is the top of the `swift-acp` dependency stack. It depends on all four other modules and converts the abstract role contracts from `ACPAgent` and `ACPClient` into running communication channels.
+`ACPTransport` は `swift-acp` 依存スタックの最上位。他の 4 モジュールすべてに依存し、`ACPAgent` と `ACPClient` の抽象ロールコントラクトを実際の通信チャネルに変換する。
 
-Two connection styles are provided. `InProcessConnection` is the zero-copy, zero-serialization path: it binds an `ACPAgent` and a `StreamingSessionClient` in one process, exposes the agent's progress notifications as an `AsyncStream<SessionNotification>`, and lets the host drive turns directly. This is ideal for testing, embedding an agent in an app, or any scenario where both sides live in the same Swift process.
+2 つの接続スタイルを提供する。`InProcessConnection` はゼロコピー・ゼロ直列化パス：同一プロセスで `ACPAgent` と `StreamingSessionClient` を結合し、エージェントの進捗通知を `AsyncStream<SessionNotification>` として公開し、ホストが直接ターンを駆動できる。テスト・アプリへのエージェント埋め込み・両側が同一 Swift プロセスに存在する任意のシナリオに最適。
 
-`AgentConnection` is the serialized path. It wraps any `ACPMessageTransport` — for instance `StdioTransport`, which reads and writes `Data` frames on standard in/out — and runs the full JSON-RPC dispatch loop. Incoming client requests are decoded by method name, dispatched to the concrete `ACPAgent`, and the response is encoded and sent back. The agent receives a `RemoteClient` proxy whose calls (such as `sessionUpdate`, `fs/*`, `terminal/*`) are marshalled back over the same transport. This is the standard path for agents that need to interoperate with external ACP clients.
+`AgentConnection` は直列化パス。任意の `ACPMessageTransport`（例: stdin/stdout で `Data` フレームを読み書きする `StdioTransport`）をラップし、完全な JSON-RPC ディスパッチループを実行する。受信するクライアントリクエストはメソッド名でデコードされて具体的な `ACPAgent` へディスパッチされ、レスポンスが符号化されて返送される。エージェントは `RemoteClient` プロキシを受け取り、`sessionUpdate`・`fs/*`・`terminal/*` などの呼び出しが同一トランスポート経由でマーシャリングされる。外部 ACP クライアントと相互運用が必要なエージェントの標準パス。
 
-`JSONRPCFrame` and `JSONRPCCodec` are the lower-level framing primitives used internally by `AgentConnection`; they are public for callers that need direct access to the encode/decode layer.
+`JSONRPCFrame` と `JSONRPCCodec` は `AgentConnection` が内部で使用する下位レベルのフレーミングプリミティブで、符号化・復号層に直接アクセスする呼び出し元のために公開されている。
 
 ```swift
 import ACPCore
 import ACPTransport
 
-// In-process: no serialization, direct Swift value passing.
+// インプロセス: 直列化なし、Swift 値を直接受け渡す。
 let conn = InProcessConnection { client in
     MyResearchAgent(client: client)
 }
 
 Task {
     for await notification in conn.updates {
-        print(notification.update) // render streamed progress
+        print(notification.update) // ストリーミング進捗を描画する
     }
 }
 
 let response = try await conn.agent.prompt(
-    PromptRequest(sessionId: SessionId(rawValue: "s1"), content: Content(blocks: []))
+    PromptRequest(sessionId: SessionId("s1"), prompt: [])
 )
 conn.finish()
 ```
 
 ## Topics
 
-### In-Process Channel
+### インプロセスチャネル
 
 - ``InProcessConnection``
 - ``StreamingSessionClient``
 
-### Serialized Channel
+### 直列化チャネル
 
 - ``AgentConnection``
 - ``StdioTransport``
 
-### Transport Protocol
+### トランスポートプロトコル
 
 - ``ACPMessageTransport``
 - ``ACPTransportError``
 
-### Framing
+### フレーミング
 
 - ``JSONRPCFrame``
 - ``JSONRPCCodec``

@@ -1,15 +1,15 @@
-/// A JSON-RPC error object (the schema's `Error` definition).
+/// JSON-RPC エラーオブジェクト（スキーマの `Error` 定義に対応）。
 ///
-/// Named `RPCError` in Swift to avoid shadowing `Swift.Error`; `schemaName`
-/// pins it back to the wire name. `data` is omitted entirely when absent.
+/// `Swift.Error` を隠さないよう `RPCError` と命名し、`schemaName` でワイヤー名に紐付ける。
+/// `data` は存在しない場合、ワイヤーから完全に省略される。
 public struct RPCError: ACPSchemaType, Error {
     public static var schemaName: String { "Error" }
 
-    /// A number indicating the error type that occurred.
+    /// エラーの種別コード。
     public var code: ErrorCode
-    /// A short, single-sentence description of the error.
+    /// エラーの短い一文説明。
     public var message: String
-    /// Optional additional information about the error.
+    /// 追加情報（省略可）。
     public var data: JSONValue?
 
     public init(code: ErrorCode, message: String, data: JSONValue? = nil) {

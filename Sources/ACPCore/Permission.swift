@@ -1,4 +1,4 @@
-/// The type of permission option presented to the user.
+/// ユーザーに提示するパーミッションオプションの種別。
 public struct PermissionOptionKind: ACPStringNewType {
     public let rawValue: String
     public init(_ value: String) { rawValue = value }
@@ -9,7 +9,7 @@ public struct PermissionOptionKind: ACPStringNewType {
     public static let rejectAlways = PermissionOptionKind("reject_always")
 }
 
-/// An option presented to the user when requesting permission.
+/// パーミッションリクエスト時にユーザーに提示するオプション。
 public struct PermissionOption: ACPSchemaType {
     public var optionId: PermissionOptionId
     public var name: String
@@ -29,7 +29,7 @@ public struct PermissionOption: ACPSchemaType {
     }
 }
 
-/// A request for user permission to execute a tool call.
+/// ツール呼び出し実行のためのユーザーパーミッションリクエスト。
 public struct RequestPermissionRequest: ACPSchemaType {
     public var sessionId: SessionId
     public var toolCall: ToolCallUpdate
@@ -54,7 +54,7 @@ public struct RequestPermissionRequest: ACPSchemaType {
     }
 }
 
-/// The user selected one of the provided permission options.
+/// ユーザーが提示されたパーミッションオプションを選択した結果。
 public struct SelectedPermissionOutcome: ACPSchemaType {
     public var optionId: PermissionOptionId
     public var meta: Meta?
@@ -70,7 +70,7 @@ public struct SelectedPermissionOutcome: ACPSchemaType {
     }
 }
 
-/// The outcome of a permission request, internally tagged on `outcome`.
+/// パーミッションリクエストの結果。`outcome` フィールドで内部タグ付けされる。
 public enum RequestPermissionOutcome: ACPSchemaType {
     case cancelled
     case selected(SelectedPermissionOutcome)
@@ -102,7 +102,7 @@ public enum RequestPermissionOutcome: ACPSchemaType {
     }
 }
 
-/// The response to a permission request.
+/// パーミッションリクエストへのレスポンス。
 public struct RequestPermissionResponse: ACPSchemaType {
     public var outcome: RequestPermissionOutcome
     public var meta: Meta?

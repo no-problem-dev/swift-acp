@@ -1,4 +1,4 @@
-/// An HTTP header to set when making requests to the MCP server.
+/// MCP サーバーへのリクエスト時に設定する HTTP ヘッダー。
 public struct HttpHeader: ACPSchemaType {
     public var name: String
     public var value: String
@@ -16,7 +16,7 @@ public struct HttpHeader: ACPSchemaType {
     }
 }
 
-/// HTTP transport configuration for MCP.
+/// MCP の HTTP トランスポート設定。
 public struct McpServerHttp: ACPSchemaType {
     public var name: String
     public var url: String
@@ -36,7 +36,7 @@ public struct McpServerHttp: ACPSchemaType {
     }
 }
 
-/// SSE transport configuration for MCP.
+/// MCP の SSE トランスポート設定。
 public struct McpServerSse: ACPSchemaType {
     public var name: String
     public var url: String
@@ -56,7 +56,7 @@ public struct McpServerSse: ACPSchemaType {
     }
 }
 
-/// Stdio transport configuration for MCP. All agents MUST support this transport.
+/// MCP の stdio トランスポート設定。すべてのエージェントがこのトランスポートをサポートしなければならない。
 public struct McpServerStdio: ACPSchemaType {
     public var name: String
     public var command: String
@@ -78,11 +78,10 @@ public struct McpServerStdio: ACPSchemaType {
     }
 }
 
-/// Configuration for connecting to an MCP (Model Context Protocol) server.
+/// MCP（Model Context Protocol）サーバーへの接続設定。
 ///
-/// Discriminated on `type`: `http` and `sse` carry that tag, while the baseline
-/// `stdio` transport has no `type` tag (it is the untagged default). An
-/// unrecognised `type` is preserved as `.unknown`.
+/// `type` フィールドで判別される。`http`・`sse` はタグを持ち、ベースラインの
+/// `stdio` トランスポートはタグなし（デフォルト）。未知の `type` は `.unknown` として保持する。
 public enum McpServer: ACPSchemaType {
     case http(McpServerHttp)
     case sse(McpServerSse)

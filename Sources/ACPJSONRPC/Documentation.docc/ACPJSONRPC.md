@@ -1,24 +1,24 @@
 # ``ACPJSONRPC``
 
-JSON-RPC 2.0 envelope types and the `ACPSchemaType` conformance contract that underpins every domain type in the `swift-acp` package.
+JSON-RPC 2.0 エンベロープ型と、`swift-acp` パッケージ全体のドメイン型を支える `ACPSchemaType` 準拠コントラクト。
 
 ## Overview
 
-`ACPJSONRPC` is the lowest layer in the `swift-acp` dependency graph. All other modules depend on it directly or transitively, and `ACPCore` re-exports it so that a single `import ACPCore` statement brings the JSON-RPC primitives into scope for most users.
+`ACPJSONRPC` は `swift-acp` 依存グラフの最底層。他のすべてのモジュールが直接または推移的にこれに依存し、`ACPCore` が再エクスポートするため、大半のユーザーは `import ACPCore` 1 文で JSON-RPC プリミティブをスコープに取り込める。
 
-The module provides three categories of types. First, the generic JSON-RPC 2.0 envelope structs — `JSONRPCRequest`, `JSONRPCNotification`, and `JSONRPCResponse` — carry typed payloads across any transport. `JSONRPCVersion` identifies the protocol revision in each envelope.
+このモジュールは 3 種類の型を提供する。第 1 に、汎用 JSON-RPC 2.0 エンベロープ構造体 `JSONRPCRequest`・`JSONRPCNotification`・`JSONRPCResponse` は、任意のトランスポートで型付きペイロードを運ぶ。`JSONRPCVersion` は各エンベロープでプロトコルリビジョンを識別する。
 
-Second, `JSONValue` is a recursive sum type that models any JSON node (null, bool, number, string, array, object). It is used wherever the ACP schema allows open-ended JSON, such as extension payloads and the `_meta` dictionary.
+第 2 に、`JSONValue` は任意の JSON ノード（null・bool・number・string・array・object）をモデル化する再帰的 sum 型。拡張ペイロードや `_meta` ディクショナリなど、ACP スキーマがオープンエンドな JSON を許容する箇所で使用する。
 
-Third, `ACPSchemaType` is the protocol that every named definition in the ACP wire schema maps to exactly one Swift type through. Conforming types gain a default `schemaName` and a `roundTripJSON(_:using:)` helper used by the conformance test suite to prove lossless encoding.
+第 3 に、`ACPSchemaType` は ACP ワイヤースキーマの各名前付き定義がちょうど 1 つの Swift 型に対応することを保証するプロトコル。準拠型はデフォルトの `schemaName` と、コンフォーマンステストスイートがロスレス符号化を検証するための `roundTripJSON(_:using:)` ヘルパーを得る。
 
 ```swift
 import ACPJSONRPC
 
-// JSONValue models arbitrary JSON without loss.
+// JSONValue は任意の JSON をロスなく表現する。
 let value: JSONValue = .object(["version": .number(1), "tag": .string("stable")])
 
-// Every schema type round-trips through JSON.
+// すべてのスキーマ型は JSON をラウンドトリップする。
 let data = try JSONEncoder().encode(RequestId.number(42))
 let copy = try JSONDecoder().decode(RequestId.self, from: data)
 assert(copy == .number(42))
@@ -26,30 +26,30 @@ assert(copy == .number(42))
 
 ## Topics
 
-### Schema Contract
+### スキーマ契約
 
 - ``ACPSchemaType``
 
-### JSON Primitives
+### JSON プリミティブ
 
 - ``JSONValue``
 
-### Request Identifiers
+### リクエスト識別子
 
 - ``RequestId``
 
-### Envelopes
+### エンベロープ
 
 - ``JSONRPCRequest``
 - ``JSONRPCNotification``
 - ``JSONRPCResponse``
 - ``JSONRPCVersion``
 
-### Errors
+### エラー
 
 - ``RPCError``
 - ``ErrorCode``
 
-### Schema Registry
+### スキーマレジストリ
 
 - ``ACPJSONRPCSchema``

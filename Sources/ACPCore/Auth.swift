@@ -1,4 +1,4 @@
-/// Agent handles authentication itself. The default authentication method type.
+/// エージェント自身が認証を処理するデフォルトの認証メソッド型。
 public struct AuthMethodAgent: ACPSchemaType {
     public var id: String
     public var name: String
@@ -18,10 +18,10 @@ public struct AuthMethodAgent: ACPSchemaType {
     }
 }
 
-/// An available authentication method.
+/// 利用可能な認証メソッド。
 ///
-/// Discriminated on `type`; when no `type` is present, the method is the
-/// default `agent`. An unrecognised `type` is preserved as `.unknown`.
+/// `type` フィールドで判別される。`type` が存在しない場合はデフォルトの `agent` として扱う。
+/// 未知の `type` は `.unknown` として保持する。
 public enum AuthMethod: ACPSchemaType {
     case agent(AuthMethodAgent)
     case unknown(type: String, raw: JSONValue)
@@ -45,7 +45,7 @@ public enum AuthMethod: ACPSchemaType {
     }
 }
 
-/// Request parameters for the `authenticate` method.
+/// `authenticate` メソッドのリクエストパラメータ。
 public struct AuthenticateRequest: ACPSchemaType {
     public var methodId: String
     public var meta: Meta?
@@ -61,21 +61,21 @@ public struct AuthenticateRequest: ACPSchemaType {
     }
 }
 
-/// Response to the `authenticate` method.
+/// `authenticate` メソッドへのレスポンス。
 public struct AuthenticateResponse: ACPSchemaType {
     public var meta: Meta?
     public init(meta: Meta? = nil) { self.meta = meta }
     private enum CodingKeys: String, CodingKey { case meta = "_meta" }
 }
 
-/// Request parameters for the `logout` method.
+/// `logout` メソッドのリクエストパラメータ。
 public struct LogoutRequest: ACPSchemaType {
     public var meta: Meta?
     public init(meta: Meta? = nil) { self.meta = meta }
     private enum CodingKeys: String, CodingKey { case meta = "_meta" }
 }
 
-/// Response to the `logout` method.
+/// `logout` メソッドへのレスポンス。
 public struct LogoutResponse: ACPSchemaType {
     public var meta: Meta?
     public init(meta: Meta? = nil) { self.meta = meta }

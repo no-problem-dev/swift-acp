@@ -1,16 +1,14 @@
-/// The open-ended `_meta` object carried by most ACP messages.
+/// 大部分の ACP メッセージが持つオープンエンドな `_meta` オブジェクト。
 ///
-/// Reserved by ACP for clients and agents to attach additional metadata;
-/// implementations MUST NOT assume anything about its keys.
+/// ACP がクライアントとエージェントの追加メタデータ添付のために予約する領域。
+/// 実装はそのキーについて何も仮定してはならない。
 public typealias Meta = [String: JSONValue]
 
-/// A string-backed identifier or open enumeration.
+/// 文字列バックの識別子またはオープン列挙型。
 ///
-/// ACP's ids (`SessionId`, `ToolCallId`, …) and several string enumerations
-/// (`Role`, `ToolKind`, …) are `non_exhaustive` on the wire. Modelling them as
-/// permissive string newtypes — with named constants for the known values —
-/// keeps decoding forward-compatible: an unrecognised value is preserved
-/// rather than rejected.
+/// ACP の識別子（`SessionId`・`ToolCallId` 等）や文字列列挙（`Role`・`ToolKind` 等）は
+/// ワイヤーレベルで `non_exhaustive`。許容的な文字列 newtype として表現し、
+/// 既知値には名前付き定数を設ける。未知値は拒否せず保持するため前方互換を維持する。
 public protocol ACPStringNewType:
     ACPSchemaType, RawRepresentable, Hashable, Comparable, ExpressibleByStringLiteral
 where RawValue == String {
@@ -33,14 +31,12 @@ public extension ACPStringNewType {
     }
 }
 
-/// A field that distinguishes three states: absent (key omitted), explicit
-/// `null`, and a present value.
+/// 3 状態を区別するフィールド：キー省略（`.undefined`）・明示的 `null`・値あり（`.value`）。
 ///
-/// ACP uses this where `null` and "omitted" mean different things — e.g.
-/// `SessionInfoUpdate.title`, where `null` clears the title and omission leaves
-/// it unchanged. The enclosing type must drive omission (encode the key only
-/// when the value isn't `.undefined`); decoding maps a missing key to
-/// `.undefined`, an explicit `null` to `.null`, and anything else to `.value`.
+/// ACP で `null` と "省略" が異なる意味を持つ箇所（例: `SessionInfoUpdate.title`：
+/// `null` はタイトルをクリア、省略は変更なし）で使用する。
+/// エンコード時は親型が `.undefined` のときキー自体を省略する責務を持つ。
+/// デコード時はキー不在 → `.undefined`、明示的 `null` → `.null`、それ以外 → `.value` に対応する。
 public enum MaybeUndefined<Wrapped: Codable & Equatable & Sendable>: Codable, Equatable, Sendable {
     case undefined
     case null

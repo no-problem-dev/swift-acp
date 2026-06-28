@@ -1,4 +1,4 @@
-/// The reason an agent stopped processing a prompt turn.
+/// エージェントがプロンプトターンの処理を停止した理由。
 public struct StopReason: ACPStringNewType {
     public let rawValue: String
     public init(_ value: String) { rawValue = value }
@@ -10,7 +10,7 @@ public struct StopReason: ACPStringNewType {
     public static let cancelled = StopReason("cancelled")
 }
 
-/// Request parameters for sending a user prompt to the agent.
+/// エージェントにユーザープロンプトを送信するリクエストパラメータ。
 public struct PromptRequest: ACPSchemaType {
     public var sessionId: SessionId
     public var prompt: [ContentBlock]
@@ -28,7 +28,7 @@ public struct PromptRequest: ACPSchemaType {
     }
 }
 
-/// Response from processing a user prompt.
+/// ユーザープロンプト処理後のレスポンス。
 public struct PromptResponse: ACPSchemaType {
     public var stopReason: StopReason
     public var meta: Meta?

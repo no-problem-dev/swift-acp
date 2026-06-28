@@ -1,10 +1,9 @@
-/// An arbitrary JSON value.
+/// 任意の JSON 値を表す型。
 ///
-/// ACP carries open-ended payloads in a handful of places — `_meta` fields,
-/// the extension methods (`_unstable`/`ext`), and MCP tool I/O — where the
-/// schema says "any". Modelling those as a concrete recursive value keeps the
-/// whole surface `Codable`/`Equatable`/`Sendable` without falling back to
-/// `Any`.
+/// ACP は `_meta` フィールド・拡張メソッド（`_unstable`/`ext`）・MCP ツール I/O など
+/// スキーマが "any" を許容する箇所でオープンなペイロードを運ぶ。
+/// 再帰的な具体値型として表現することで、`Any` へのフォールバックなしに
+/// `Codable`/`Equatable`/`Sendable` を全体に維持する。
 public enum JSONValue: Codable, Hashable, Sendable {
     case null
     case bool(Bool)

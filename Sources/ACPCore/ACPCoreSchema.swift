@@ -1,7 +1,7 @@
-/// The schema definitions owned by the ACP domain layer.
+/// ACP ドメイン層が所有するスキーマ定義の一覧。
 ///
-/// Populated incrementally as `$defs` are modelled; the conformance suite
-/// drives this set to cover every domain definition in the pinned schema.
+/// `$defs` のモデル化に合わせて逐次追加される。コンフォーマンステストスイートがこのセットを
+/// ピン留めされたスキーマの全ドメイン定義をカバーするように検証する。
 public enum ACPCoreSchema {
     public static let types: [any ACPSchemaType.Type] = [
         // Ids

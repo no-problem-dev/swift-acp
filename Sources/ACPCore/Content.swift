@@ -1,4 +1,4 @@
-/// The sender or recipient of messages and data in a conversation.
+/// 会話内のメッセージおよびデータの送受信者を表すロール。
 public struct Role: ACPStringNewType {
     public let rawValue: String
     public init(_ value: String) { rawValue = value }
@@ -7,8 +7,7 @@ public struct Role: ACPStringNewType {
     public static let user = Role("user")
 }
 
-/// Optional annotations the client can use to inform how objects are used or
-/// displayed.
+/// オブジェクトの用途や表示方法をクライアントに伝えるオプションのアノテーション。
 public struct Annotations: ACPSchemaType {
     public var audience: [Role]?
     public var lastModified: String?
@@ -33,7 +32,7 @@ public struct Annotations: ACPSchemaType {
     }
 }
 
-/// Text provided to or from an LLM. May be plain text or Markdown.
+/// LLM との間でやり取りするテキストコンテンツ。プレーンテキストまたは Markdown。
 public struct TextContent: ACPSchemaType {
     public var annotations: Annotations?
     public var text: String
@@ -51,7 +50,7 @@ public struct TextContent: ACPSchemaType {
     }
 }
 
-/// An image provided to or from an LLM.
+/// LLM との間でやり取りする画像コンテンツ。
 public struct ImageContent: ACPSchemaType {
     public var annotations: Annotations?
     public var data: String
@@ -79,7 +78,7 @@ public struct ImageContent: ACPSchemaType {
     }
 }
 
-/// Audio provided to or from an LLM.
+/// LLM との間でやり取りする音声コンテンツ。
 public struct AudioContent: ACPSchemaType {
     public var annotations: Annotations?
     public var data: String
@@ -99,7 +98,7 @@ public struct AudioContent: ACPSchemaType {
     }
 }
 
-/// Text-based resource contents.
+/// テキスト形式のリソース内容。
 public struct TextResourceContents: ACPSchemaType {
     public var mimeType: String?
     public var text: String
@@ -119,7 +118,7 @@ public struct TextResourceContents: ACPSchemaType {
     }
 }
 
-/// Binary resource contents.
+/// バイナリ形式のリソース内容。
 public struct BlobResourceContents: ACPSchemaType {
     public var blob: String
     public var mimeType: String?
@@ -139,7 +138,7 @@ public struct BlobResourceContents: ACPSchemaType {
     }
 }
 
-/// Resource content that can be embedded in a message (untagged: text or blob).
+/// メッセージに埋め込み可能なリソース内容（タグなし：テキストまたは blob）。
 public enum EmbeddedResourceResource: ACPSchemaType {
     case text(TextResourceContents)
     case blob(BlobResourceContents)
@@ -160,7 +159,7 @@ public enum EmbeddedResourceResource: ACPSchemaType {
     }
 }
 
-/// The contents of a resource, embedded into a prompt or tool call result.
+/// プロンプトまたはツール呼び出し結果に埋め込まれたリソースの内容。
 public struct EmbeddedResource: ACPSchemaType {
     public var annotations: Annotations?
     public var resource: EmbeddedResourceResource
@@ -178,7 +177,7 @@ public struct EmbeddedResource: ACPSchemaType {
     }
 }
 
-/// A resource the agent can read, referenced in a prompt or tool call result.
+/// プロンプトまたはツール呼び出し結果で参照される、エージェントが読み取れるリソース。
 public struct ResourceLink: ACPSchemaType {
     public var annotations: Annotations?
     public var description: String?
@@ -215,10 +214,11 @@ public struct ResourceLink: ACPSchemaType {
     }
 }
 
-/// Displayable information in the protocol: text, images, audio, or resources.
+/// プロトコルで表示可能な情報（テキスト・画像・音声・リソース）。
 ///
-/// Internally tagged on `type`. An unrecognised `type` is preserved verbatim
-/// as `.unknown` so a newer peer's content block never fails to decode.
+/// `type` フィールドで内部タグ付けされる。未知の `type` は `.unknown` として
+/// そのまま保持されるため、上位バージョンの通信相手のコンテンツブロックも
+/// デコードに失敗しない。
 public enum ContentBlock: ACPSchemaType {
     case text(TextContent)
     case image(ImageContent)
@@ -260,7 +260,7 @@ public enum ContentBlock: ACPSchemaType {
     }
 }
 
-/// A standard content block wrapper.
+/// 標準コンテンツブロックのラッパー。
 public struct Content: ACPSchemaType {
     public var content: ContentBlock
     public var meta: Meta?
@@ -276,7 +276,7 @@ public struct Content: ACPSchemaType {
     }
 }
 
-/// A streamed item of content, carrying the message it belongs to.
+/// ストリームで配信されるコンテンツの断片。所属するメッセージの `messageId` を持つ。
 public struct ContentChunk: ACPSchemaType {
     public var content: ContentBlock
     public var messageId: MessageId?

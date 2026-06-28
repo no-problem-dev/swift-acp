@@ -1,8 +1,8 @@
-/// A JSON-RPC request identifier.
+/// JSON-RPC リクエスト識別子。
 ///
-/// Per the JSON-RPC 2.0 specification an id is a string, an integer, or null;
-/// it is encoded untagged (as the bare scalar) and echoed back on the matching
-/// response so a caller can correlate the two.
+/// JSON-RPC 2.0 仕様では id は文字列・整数・null のいずれか。
+/// タグなし（裸のスカラー）で符号化され、対応するレスポンスにそのまま返却されることで
+/// 呼び出し側がリクエストとレスポンスを対応付けられる。
 public enum RequestId: ACPSchemaType, Hashable {
     case null
     case number(Int64)

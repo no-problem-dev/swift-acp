@@ -1,11 +1,10 @@
 import Foundation
 import ACPCore
 
-/// A classified incoming JSON-RPC frame.
+/// 分類済みの受信 JSON-RPC フレーム。
 ///
-/// The codec produces one of these values for every frame received over the
-/// transport. A dispatch loop matches on the case to route requests,
-/// notifications, and correlated responses.
+/// コーデックがトランスポートから受信したフレームごとにこの値を生成する。
+/// ディスパッチループがケースにマッチしてリクエスト・通知・対応するレスポンスをルーティングする。
 public enum JSONRPCFrame: Sendable {
     case request(id: RequestId, method: String, params: JSONValue?)
     case notification(method: String, params: JSONValue?)
@@ -13,8 +12,7 @@ public enum JSONRPCFrame: Sendable {
     case failure(id: RequestId, error: RPCError)
 }
 
-/// Encodes and decodes JSON-RPC frames over `Data`, bridging the typed ACP
-/// payloads and the wire.
+/// `Data` 上で JSON-RPC フレームを符号化・復号するコーデック。型付き ACP ペイロードとワイヤーを橋渡しする。
 public struct JSONRPCCodec: Sendable {
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
@@ -29,7 +27,7 @@ public struct JSONRPCCodec: Sendable {
         var error: RPCError?
     }
 
-    /// Classify one received frame.
+    /// 受信したフレームを 1 件分類する。
     public func decode(_ data: Data) throws -> JSONRPCFrame {
         let raw = try decoder.decode(RawFrame.self, from: data)
         switch (raw.method, raw.id, raw.error) {
@@ -48,35 +46,34 @@ public struct JSONRPCCodec: Sendable {
         }
     }
 
-    /// Convert a typed payload to the `JSONValue` form carried as `params`/`result`.
+    /// 型付きペイロードを `params`/`result` として運ぶ `JSONValue` 形式に変換する。
     ///
-    /// Round-trips the value through JSON encoding, producing a `JSONValue`
-    /// tree that can be embedded in a JSON-RPC frame.
+    /// JSON 符号化を経由してラウンドトリップし、JSON-RPC フレームに埋め込める `JSONValue` ツリーを生成する。
     public func jsonValue(from payload: some Encodable) throws -> JSONValue {
         try decoder.decode(JSONValue.self, from: try encoder.encode(payload))
     }
 
-    /// Decode a typed payload from a `params`/`result` `JSONValue`.
+    /// `params`/`result` の `JSONValue` から型付きペイロードをデコードする。
     public func decodePayload<T: Decodable>(_ type: T.Type, from value: JSONValue?) throws -> T {
         try decoder.decode(T.self, from: try encoder.encode(value ?? .null))
     }
 
-    /// Encode a JSON-RPC request frame.
+    /// JSON-RPC リクエストフレームを符号化する。
     public func encodeRequest(id: RequestId, method: String, params: JSONValue?) throws -> Data {
         try encoder.encode(JSONRPCRequest(id: id, method: method, params: params))
     }
 
-    /// Encode a JSON-RPC notification frame (no id, no reply expected).
+    /// JSON-RPC 通知フレームを符号化する（id なし・応答不要）。
     public func encodeNotification(method: String, params: JSONValue?) throws -> Data {
         try encoder.encode(JSONRPCNotification(method: method, params: params))
     }
 
-    /// Encode a successful JSON-RPC response frame.
+    /// 成功した JSON-RPC レスポンスフレームを符号化する。
     public func encodeSuccess(id: RequestId, result: JSONValue) throws -> Data {
         try encoder.encode(JSONRPCResponse.success(id: id, result: result))
     }
 
-    /// Encode a JSON-RPC error response frame.
+    /// JSON-RPC エラーレスポンスフレームを符号化する。
     public func encodeFailure(id: RequestId, error: RPCError) throws -> Data {
         try encoder.encode(JSONRPCResponse<JSONValue>.failure(id: id, error: error))
     }

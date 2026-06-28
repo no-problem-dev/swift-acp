@@ -1,7 +1,7 @@
-/// The schema definitions owned by the JSON-RPC layer.
+/// JSON-RPC レイヤーが所有するスキーマ定義の一覧。
 ///
-/// The conformance suite unions this with `ACPCoreSchema.types` to prove every
-/// `$defs` entry in the pinned wire schema is modelled exactly once.
+/// コンフォーマンステストスイートがこれを `ACPCoreSchema.types` と合算し、
+/// ピン留めされたワイヤースキーマの全 `$defs` エントリが過不足なくモデル化されていることを検証する。
 public enum ACPJSONRPCSchema {
     public static let types: [any ACPSchemaType.Type] = [
         RequestId.self,

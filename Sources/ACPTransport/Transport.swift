@@ -1,25 +1,24 @@
 import Foundation
 import ACPCore
 
-/// A bidirectional transport for JSON-RPC message frames.
+/// JSON-RPC メッセージフレームの双方向トランスポートプロトコル。
 ///
-/// This is the *serialized* boundary used by the stdio adapter (and any network
-/// adapter). The in-process path deliberately does **not** go through it — there
-/// the ACP types cross as Swift values with no encoding (see `InProcessConnection`).
+/// stdio アダプタ（および任意のネットワークアダプタ）が使用する直列化境界。
+/// インプロセスパスは意図的にこれを経由しない——そこでは ACP 型が符号化なしに Swift 値として受け渡される（`InProcessConnection` 参照）。
 public protocol ACPMessageTransport: Sendable {
-    /// Send one encoded JSON-RPC message frame.
+    /// 符号化済みの JSON-RPC メッセージフレームを 1 件送信する。
     func send(_ frame: Data) async throws
 
-    /// The stream of incoming JSON-RPC message frames, one element per frame.
+    /// 受信する JSON-RPC メッセージフレームのストリーム（1 要素 = 1 フレーム）。
     func messages() -> AsyncThrowingStream<Data, any Error>
 }
 
-/// Errors raised by the transport layer.
+/// トランスポート層が送出するエラー。
 public enum ACPTransportError: Error, Equatable, Sendable {
-    /// The peer sent a method this side does not implement.
+    /// 対向が実装していないメソッドを送信してきた。
     case methodNotSupported(String)
-    /// A response arrived for a request id that was not pending.
+    /// 保留中でないリクエスト ID に対するレスポンスが到着した。
     case unexpectedResponse(RequestId)
-    /// The transport was closed before a pending request completed.
+    /// 保留中のリクエストが完了する前にトランスポートがクローズされた。
     case closed
 }

@@ -1,20 +1,16 @@
 import Foundation
 
-/// A value type that mirrors a named definition in the ACP wire schema
-/// (`schema/v1/schema.json` → `$defs`).
+/// ACP ワイヤースキーマ（`schema/v1/schema.json` の `$defs`）の名前付き定義に対応する値型。
 ///
-/// Conformance is the contract the conformance suite checks: every `$defs`
-/// entry in the pinned schema must have exactly one modelled Swift type, and
-/// every modelled type round-trips losslessly through JSON. `schemaName`
-/// defaults to the Swift type name, so a type only overrides it when the Swift
-/// spelling deliberately diverges from the schema (e.g. to avoid shadowing
-/// `Swift.Error`).
+/// コンフォーマンステストスイートが確認するコントラクト：ピン留めされたスキーマの各 `$defs` エントリは
+/// ちょうど 1 つの Swift 型に対応し、すべてのモデル型が JSON をロスレスにラウンドトリップする必要がある。
+/// `schemaName` はデフォルトで Swift の型名を返すため、Swift の命名がスキーマと意図的に異なる場合
+/// （例: `Swift.Error` の隠蔽を避けるため）にのみオーバーライドする。
 public protocol ACPSchemaType: Codable, Equatable, Sendable {
     static var schemaName: String { get }
 
-    /// Decodes `data` as `Self` and re-encodes it, callable on a type-erased
-    /// `any ACPSchemaType.Type`. The conformance suite uses this to prove every
-    /// modelled type round-trips a vendored wire sample losslessly.
+    /// `data` を `Self` としてデコードして再エンコードする。型消去された `any ACPSchemaType.Type` 上で呼び出し可能。
+    /// コンフォーマンステストスイートがこれを使ってモデル型ごとにワイヤーサンプルのロスレスラウンドトリップを検証する。
     static func roundTripJSON(_ data: Data, using encoder: JSONEncoder) throws -> Data
 }
 

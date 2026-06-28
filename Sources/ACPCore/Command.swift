@@ -1,4 +1,4 @@
-/// The text typed after a command name, provided as the command's input.
+/// コマンド名の後に入力されたテキスト。コマンドの入力として渡される。
 public struct UnstructuredCommandInput: ACPSchemaType {
     public var hint: String
     public var meta: Meta?
@@ -14,7 +14,7 @@ public struct UnstructuredCommandInput: ACPSchemaType {
     }
 }
 
-/// The input specification for a command (untagged).
+/// コマンドの入力仕様（タグなし）。
 public enum AvailableCommandInput: ACPSchemaType {
     case unstructured(UnstructuredCommandInput)
     case unknown(JSONValue)
@@ -35,7 +35,7 @@ public enum AvailableCommandInput: ACPSchemaType {
     }
 }
 
-/// A command the agent can execute.
+/// エージェントが実行できるコマンド。
 public struct AvailableCommand: ACPSchemaType {
     public var name: String
     public var description: String
@@ -60,7 +60,7 @@ public struct AvailableCommand: ACPSchemaType {
     }
 }
 
-/// Notification that the set of available commands is ready or has changed.
+/// 利用可能なコマンドセットが準備完了または変更されたことを通知する更新。
 public struct AvailableCommandsUpdate: ACPSchemaType {
     public var availableCommands: [AvailableCommand]
     public var meta: Meta?

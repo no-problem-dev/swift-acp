@@ -1,8 +1,7 @@
-/// An arbitrary request that is not part of the ACP spec.
+/// ACP 仕様外の任意のリクエスト。
 ///
-/// `method` is carried out-of-band by the JSON-RPC envelope (used for routing,
-/// not serialized); only `params` is on the wire, so this type encodes
-/// transparently as its `params` value.
+/// `method` は JSON-RPC エンベロープ経由でアウトオブバンドに運ばれ（ルーティング用・非シリアル化）、
+/// ワイヤー上には `params` のみが存在する。したがってこの型は `params` 値として透過的に符号化される。
 public struct ExtRequest: ACPSchemaType {
     public var method: String
     public var params: JSONValue
@@ -26,9 +25,9 @@ public struct ExtRequest: ACPSchemaType {
     }
 }
 
-/// An arbitrary response to an [`ExtRequest`] that is not part of the ACP spec.
+/// ACP 仕様外の任意のリクエスト（`ExtRequest`）へのレスポンス。
 ///
-/// Encodes transparently as its `params` value.
+/// `params` 値として透過的に符号化される。
 public struct ExtResponse: ACPSchemaType {
     public var params: JSONValue
 
@@ -43,11 +42,10 @@ public struct ExtResponse: ACPSchemaType {
     }
 }
 
-/// An arbitrary one-way notification that is not part of the ACP spec.
+/// ACP 仕様外の任意の一方向通知。
 ///
-/// `method` is carried out-of-band by the JSON-RPC envelope (used for routing,
-/// not serialized); only `params` is on the wire, so this type encodes
-/// transparently as its `params` value.
+/// `method` は JSON-RPC エンベロープ経由でアウトオブバンドに運ばれ（ルーティング用・非シリアル化）、
+/// ワイヤー上には `params` のみが存在する。したがってこの型は `params` 値として透過的に符号化される。
 public struct ExtNotification: ACPSchemaType {
     public var method: String
     public var params: JSONValue
@@ -71,7 +69,7 @@ public struct ExtNotification: ACPSchemaType {
     }
 }
 
-/// Notification to cancel ongoing operations for a session.
+/// セッションの進行中操作をキャンセルする通知。
 public struct CancelNotification: ACPSchemaType {
     public var sessionId: SessionId
     public var meta: Meta?

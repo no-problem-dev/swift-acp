@@ -1,58 +1,56 @@
 import ACPCore
 
-/// The agent side of the Agent Client Protocol: the methods an agent handles
-/// when driven by a client.
+/// Agent Client Protocol のエージェント側コントラクト。クライアントに駆動されるエージェントが実装するメソッドを定義する。
 ///
-/// This is the behavioural contract over the v1 wire types — transport-agnostic
-/// and UI-independent. A concrete agent (an LLM loop, an A2A orchestrator, …)
-/// conforms to it; a transport adapts it to JSON-RPC or an in-process channel.
-/// Only stable v1 methods are included.
+/// v1 ワイヤー型に対するトランスポート非依存・UI 非依存の振る舞いコントラクト。
+/// 具体的なエージェント（LLM ループ・A2A オーケストレーター等）が準拠し、
+/// トランスポートがこれを JSON-RPC またはインプロセスチャネルに適合させる。
+/// 安定した v1 メソッドのみを含む。
 public protocol ACPAgent: Sendable {
-    /// Negotiate protocol version and exchange capabilities.
+    /// プロトコルバージョンを交渉し、ケーパビリティを交換する。
     func initialize(_ request: InitializeRequest) async throws -> InitializeResponse
 
-    /// Authenticate with the agent using a previously advertised method.
+    /// 事前に通知された認証メソッドでエージェントと認証する。
     func authenticate(_ request: AuthenticateRequest) async throws -> AuthenticateResponse
 
-    /// Create a new session.
+    /// 新しいセッションを作成する。
     func newSession(_ request: NewSessionRequest) async throws -> NewSessionResponse
 
-    /// Resume a previously created session by loading its history.
+    /// 過去のセッションを履歴をロードして再開する。
     func loadSession(_ request: LoadSessionRequest) async throws -> LoadSessionResponse
 
-    /// List the sessions the agent knows about.
+    /// エージェントが認識しているセッションの一覧を取得する。
     func listSessions(_ request: ListSessionsRequest) async throws -> ListSessionsResponse
 
-    /// Resume a session for further prompting.
+    /// セッションを再開して追加のプロンプトを受け付ける。
     func resumeSession(_ request: ResumeSessionRequest) async throws -> ResumeSessionResponse
 
-    /// Delete a session and its history.
+    /// セッションとその履歴を削除する。
     func deleteSession(_ request: DeleteSessionRequest) async throws -> DeleteSessionResponse
 
-    /// Close a session without deleting it.
+    /// セッションを削除せずにクローズする。
     func closeSession(_ request: CloseSessionRequest) async throws -> CloseSessionResponse
 
-    /// Switch the session's current mode.
+    /// セッションの現在モードを切り替える。
     func setSessionMode(_ request: SetSessionModeRequest) async throws -> SetSessionModeResponse
 
-    /// Set a session configuration option.
+    /// セッション設定オプションを設定する。
     func setSessionConfigOption(
         _ request: SetSessionConfigOptionRequest
     ) async throws -> SetSessionConfigOptionResponse
 
-    /// Run a prompt turn. The agent streams progress to the client via
-    /// `session/update` notifications and returns a `StopReason`.
+    /// プロンプトターンを実行する。エージェントは `session/update` 通知で進捗をストリームし、`StopReason` を返す。
     func prompt(_ request: PromptRequest) async throws -> PromptResponse
 
-    /// Cancel the in-flight prompt turn for a session (notification — no reply).
+    /// セッションの進行中プロンプトターンをキャンセルする（通知のみ・応答なし）。
     func cancel(_ notification: CancelNotification) async throws
 
-    /// End the agent's authenticated session.
+    /// エージェントの認証済みセッションを終了する。
     func logout(_ request: LogoutRequest) async throws -> LogoutResponse
 
-    /// Handle a non-spec extension request.
+    /// 仕様外の拡張リクエストを処理する。
     func ext(_ request: ExtRequest) async throws -> ExtResponse
 
-    /// Handle a non-spec extension notification.
+    /// 仕様外の拡張通知を処理する。
     func extNotification(_ notification: ExtNotification) async throws
 }

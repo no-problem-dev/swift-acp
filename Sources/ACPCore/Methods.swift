@@ -1,9 +1,9 @@
-/// The JSON-RPC method names defined by ACP v1.
+/// ACP v1 が定義する JSON-RPC メソッド名。
 ///
-/// The string values are pinned to `schema/v1/meta.json`; the conformance suite
-/// asserts `agentMethods`/`clientMethods` match that registry exactly.
+/// 文字列値は `schema/v1/meta.json` にピン留めされ、コンフォーマンステストスイートが
+/// `agentMethods`/`clientMethods` がレジストリと完全に一致することを検証する。
 public enum ACPMethod {
-    /// Methods an agent handles (client → agent).
+    /// エージェントが処理するメソッド（client → agent）。
     public enum Agent {
         public static let initialize = "initialize"
         public static let authenticate = "authenticate"
@@ -20,7 +20,7 @@ public enum ACPMethod {
         public static let logout = "logout"
     }
 
-    /// Methods a client handles (agent → client).
+    /// クライアントが処理するメソッド（agent → client）。
     public enum Client {
         public static let sessionRequestPermission = "session/request_permission"
         public static let sessionUpdate = "session/update"
@@ -33,7 +33,7 @@ public enum ACPMethod {
         public static let terminalKill = "terminal/kill"
     }
 
-    /// Mirrors `meta.json.agentMethods` (registry key → wire method name).
+    /// `meta.json.agentMethods` のミラー（レジストリキー → ワイヤーメソッド名）。
     public static let agentMethods: [String: String] = [
         "initialize": Agent.initialize,
         "authenticate": Agent.authenticate,
@@ -50,7 +50,7 @@ public enum ACPMethod {
         "logout": Agent.logout,
     ]
 
-    /// Mirrors `meta.json.clientMethods` (registry key → wire method name).
+    /// `meta.json.clientMethods` のミラー（レジストリキー → ワイヤーメソッド名）。
     public static let clientMethods: [String: String] = [
         "session_request_permission": Client.sessionRequestPermission,
         "session_update": Client.sessionUpdate,

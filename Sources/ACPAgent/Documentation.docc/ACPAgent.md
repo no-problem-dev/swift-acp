@@ -1,14 +1,14 @@
 # ``ACPAgent``
 
-The protocol that any ACP-compliant agent must conform to — a transport-agnostic Swift contract over the v1 method set.
+ACP 準拠エージェントが実装しなければならないプロトコル——v1 メソッドセットに対するトランスポート非依存 Swift コントラクト。
 
 ## Overview
 
-`ACPAgent` defines the **agent side** of the Agent Client Protocol: the full set of methods a client may call on an agent. Conforming to `ACPAgent` is the only requirement for a type to be wired up by `ACPTransport` — whether over stdio, an in-process channel, or any future transport.
+`ACPAgent` は Agent Client Protocol の**エージェント側**を定義する：クライアントがエージェントに呼び出し得るメソッドの全セット。`ACPAgent` に準拠することが `ACPTransport` に接続される唯一の要件であり、stdio・インプロセスチャネル・任意のトランスポートで動作する。
 
-The protocol covers four logical groups of operations. Handshake methods (`initialize`, `authenticate`, `logout`) negotiate the protocol version, exchange capabilities, and manage authentication. Session lifecycle methods (`newSession`, `loadSession`, `listSessions`, `resumeSession`, `deleteSession`, `closeSession`, `setSessionMode`, `setSessionConfigOption`) let the client manage named, persistent conversations. The prompt method (`prompt`) drives one turn of agent reasoning; the agent is expected to push streaming progress to the client via `ACPClient.sessionUpdate(_:)` as it works. Extension methods (`ext`, `extNotification`, `cancel`) handle cancellation and non-spec additions.
+プロトコルは 4 つの論理グループに分かれる。ハンドシェイクメソッド（`initialize`・`authenticate`・`logout`）はプロトコルバージョンを交渉しケーパビリティを交換して認証を管理する。セッションライフサイクルメソッド（`newSession`・`loadSession`・`listSessions`・`resumeSession`・`deleteSession`・`closeSession`・`setSessionMode`・`setSessionConfigOption`）はクライアントが名前付き永続会話を管理できるようにする。プロンプトメソッド（`prompt`）はエージェント推論の 1 ターンを駆動し、エージェントは `ACPClient.sessionUpdate(_:)` を通じてストリーミング進捗をクライアントにプッシュする。拡張メソッド（`ext`・`extNotification`・`cancel`）はキャンセルと仕様外追加を処理する。
 
-All methods are `async throws`. An agent that does not support a given capability can throw `ACPTransportError.methodNotSupported(_:)` to signal this cleanly to the transport.
+すべてのメソッドは `async throws`。特定のケーパビリティをサポートしないエージェントは `ACPTransportError.methodNotSupported(_:)` をスローしてトランスポートに明示的に通知できる。
 
 ```swift
 import ACPCore
@@ -24,10 +24,10 @@ struct EchoAgent: ACPAgent {
     }
 
     func prompt(_ request: PromptRequest) async throws -> PromptResponse {
-        PromptResponse(stopReason: StopReason(rawValue: "end_turn"))
+        PromptResponse(stopReason: .endTurn)
     }
 
-    // Remaining methods omitted for brevity — each throws in a real minimal stub.
+    // 残りのメソッドは省略——実際の最小スタブでは各メソッドがスローする。
     func authenticate(_ r: AuthenticateRequest) async throws -> AuthenticateResponse { fatalError() }
     func newSession(_ r: NewSessionRequest) async throws -> NewSessionResponse { fatalError() }
     func loadSession(_ r: LoadSessionRequest) async throws -> LoadSessionResponse { fatalError() }
@@ -46,6 +46,6 @@ struct EchoAgent: ACPAgent {
 
 ## Topics
 
-### Role Contract
+### ロール契約
 
 - ``ACPAgent``

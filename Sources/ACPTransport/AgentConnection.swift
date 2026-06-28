@@ -3,14 +3,13 @@ import ACPCore
 import ACPAgent
 import ACPClient
 
-/// Serves an `ACPAgent` over a JSON-RPC frame transport: it decodes incoming
-/// client requests/notifications by method, dispatches them to the agent, and
-/// sends back responses. The agent is handed a `RemoteClient` whose calls
-/// (`session/update`, `session/request_permission`, `fs/*`, `terminal/*`) are
-/// marshalled back over the same transport.
+/// JSON-RPC フレームトランスポート上で `ACPAgent` を提供するアクター。
 ///
-/// This is the serialized counterpart to `InProcessConnection` — the same agent
-/// contract, reachable by any ACP client over stdio.
+/// 受信するクライアントリクエスト・通知をメソッド名でデコードしてエージェントへディスパッチし、
+/// レスポンスをエンコードして返送する。エージェントには `RemoteClient` が渡され、
+/// `session/update`・`session/request_permission`・`fs/*`・`terminal/*` の呼び出しが
+/// 同一トランスポート経由でマーシャリングされる。
+/// `InProcessConnection` の直列化版——同じエージェントコントラクトを stdio 経由で提供する。
 public actor AgentConnection {
     private let transport: any ACPMessageTransport
     private let codec = JSONRPCCodec()
@@ -22,27 +21,23 @@ public actor AgentConnection {
         self.transport = transport
     }
 
-    /// Wire up the agent before starting the read loop.
+    /// 読み取りループ開始前にエージェントをセットアップする。
     ///
-    /// Call this once before `run()`. The `makeAgent` closure receives the
-    /// `RemoteClient` the agent should use to send `session/update`
-    /// notifications and make `fs/*`/`terminal/*` requests back to the client.
+    /// `run()` の前に 1 回呼び出す。`makeAgent` クロージャは `session/update` 通知送信や
+    /// `fs/*`/`terminal/*` リクエストに使う `RemoteClient` を受け取る。
     ///
-    /// - Parameter makeAgent: A closure that returns the concrete `ACPAgent`
-    ///   implementation, bound to the provided client proxy.
+    /// - Parameter makeAgent: 具体的な `ACPAgent` 実装を返すクロージャ。提供されたクライアントプロキシにバインドされる。
     public func start(makeAgent: (any ACPClient) -> any ACPAgent) {
         agent = makeAgent(RemoteClient(connection: self))
     }
 
-    /// Run the read/dispatch loop until the transport closes or throws.
+    /// トランスポートがクローズまたは例外をスローするまで読み取り・ディスパッチループを実行する。
     ///
-    /// Reads frames from the transport, classifies each one, and dispatches it
-    /// to the agent (for client → agent requests/notifications) or resolves a
-    /// pending continuation (for agent → client responses). When the transport
-    /// ends, all outstanding pending requests are cancelled with
-    /// `ACPTransportError.closed`.
+    /// トランスポートからフレームを読み取り、各フレームを分類してエージェントへディスパッチ（client → agent リクエスト・通知）するか、
+    /// 保留中の継続を解決（agent → client レスポンス）する。トランスポート終了時、
+    /// すべての保留中リクエストは `ACPTransportError.closed` でキャンセルされる。
     ///
-    /// Call `start(makeAgent:)` before calling `run()`.
+    /// `run()` を呼び出す前に `start(makeAgent:)` を呼び出すこと。
     public func run() async throws {
         for try await frame in transport.messages() {
             let classified = try codec.decode(frame)
@@ -161,8 +156,8 @@ public actor AgentConnection {
     }
 }
 
-/// The client proxy an agent talks to when served over a transport. Each call
-/// is marshalled to a JSON-RPC request/notification on the `AgentConnection`.
+/// トランスポート経由でサービスされるエージェントが使うクライアントプロキシ。
+/// 各呼び出しは `AgentConnection` 上の JSON-RPC リクエスト・通知にマーシャリングされる。
 private struct RemoteClient: ACPClient {
     let connection: AgentConnection
     private let codec = JSONRPCCodec()

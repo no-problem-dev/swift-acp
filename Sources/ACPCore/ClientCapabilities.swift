@@ -1,6 +1,6 @@
-/// File system capabilities a client may support.
+/// クライアントがサポートするファイルシステムケーパビリティ。
 ///
-/// The boolean flags are always present on the wire (defaulting to `false`).
+/// ブールフラグはワイヤー上で常に存在する（デフォルト `false`）。
 public struct FileSystemCapabilities: ACPSchemaType {
     public var readTextFile: Bool
     public var writeTextFile: Bool
@@ -18,7 +18,7 @@ public struct FileSystemCapabilities: ACPSchemaType {
     }
 }
 
-/// Capabilities advertised by the client during initialization.
+/// 初期化時にクライアントが通知するケーパビリティ。
 public struct ClientCapabilities: ACPSchemaType {
     public var fs: FileSystemCapabilities
     public var terminal: Bool

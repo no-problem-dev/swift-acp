@@ -1,36 +1,36 @@
 # ``ACPCore``
 
-A Swift implementation of the Agent Client Protocol (ACP) v1 — shared domain types, JSON-RPC primitives, and role contracts for building ACP-compliant agents and clients.
+Agent Client Protocol (ACP) v1 の Swift 実装——共有ドメイン型・JSON-RPC プリミティブ・ACP 準拠エージェントとクライアントを構築するためのロールコントラクト。
 
 ## Overview
 
-The `swift-acp` package provides a complete, test-driven Swift surface for the Agent Client Protocol. ACP defines a bidirectional JSON-RPC 2.0 channel between an **agent** (an LLM loop, an orchestrator, or any autonomous process) and a **client** (an editor, an iOS app, or any host UI). The five libraries in this package divide that surface into focused layers.
+`swift-acp` パッケージは Agent Client Protocol の完全なテスト駆動 Swift サーフェスを提供する。ACP はエージェント（LLM ループ・オーケストレーター・その他の自律プロセス）とクライアント（エディタ・iOS アプリ・ホスト UI）の間の双方向 JSON-RPC 2.0 チャネルを定義する。このパッケージの 5 つのライブラリがサーフェスをフォーカスしたレイヤに分割する。
 
-``ACPJSONRPC`` is the foundation. It supplies the generic JSON-RPC 2.0 envelope types (`JSONRPCRequest`, `JSONRPCResponse`, `JSONRPCNotification`) and the `ACPSchemaType` conformance protocol that every domain type satisfies. Because `ACPCore` re-exports `ACPJSONRPC`, a single `import ACPCore` statement is sufficient for most users.
+``ACPJSONRPC`` は基盤層。汎用 JSON-RPC 2.0 エンベロープ型（`JSONRPCRequest`・`JSONRPCResponse`・`JSONRPCNotification`）と、すべてのドメイン型が満たす `ACPSchemaType` 準拠プロトコルを提供する。`ACPCore` が `ACPJSONRPC` を再エクスポートするため、大半のユーザーは `import ACPCore` 1 文で足りる。
 
-``ACPCore`` (this module) holds all ACP domain types: a faithful, transport-agnostic Swift mirror of the pinned v1 schema. The types are pure `Codable` value types with no I/O. They cover handshake (`InitializeRequest`, `InitializeResponse`), session lifecycle (`NewSessionRequest`, `PromptRequest`), streaming updates (`SessionUpdate`, `SessionNotification`), content blocks (`ContentBlock`, `TextContent`, `ImageContent`), auth (`AuthMethod`, `AuthenticateRequest`), and the routing envelopes (`AgentRequest`, `ClientRequest`, etc.).
+``ACPCore``（このモジュール）はすべての ACP ドメイン型を保持する：ピン留めされた v1 スキーマの忠実かつトランスポート非依存な Swift ミラー。型は純粋な `Codable` 値型で I/O を持たない。ハンドシェイク（`InitializeRequest`・`InitializeResponse`）・セッションライフサイクル（`NewSessionRequest`・`PromptRequest`）・ストリーミング更新（`SessionUpdate`・`SessionNotification`）・コンテンツブロック（`ContentBlock`・`TextContent`・`ImageContent`）・認証（`AuthMethod`・`AuthenticateRequest`）・ルーティングエンベロープ（`AgentRequest`・`ClientRequest` 等）を網羅する。
 
-``ACPAgent`` and ``ACPClient`` expose the two role contracts as Swift protocols. A concrete agent conforms to `ACPAgent`; a host UI conforms to `ACPClient`. Both protocols are transport-agnostic — they operate on the typed domain values from ``ACPCore`` directly.
+``ACPAgent`` と ``ACPClient`` は 2 つのロールコントラクトを Swift プロトコルとして公開する。具体的なエージェントは `ACPAgent` に準拠し、ホスト UI は `ACPClient` に準拠する。どちらのプロトコルもトランスポート非依存で、``ACPCore`` のドメイン値を直接操作する。
 
-``ACPTransport`` wires the contracts to real channels. `InProcessConnection` runs agent and client in the same process with zero serialization. `AgentConnection` adapts any `ACPMessageTransport` (such as `StdioTransport`) to serve an `ACPAgent` over JSON-RPC — the standard interop path for out-of-process agents.
+``ACPTransport`` はコントラクトを実際のチャネルに接続する。`InProcessConnection` はエージェントとクライアントを同一プロセスで直列化ゼロで稼働させる。`AgentConnection` は任意の `ACPMessageTransport`（例: `StdioTransport`）を適合させてプロセス外エージェントを JSON-RPC 経由で提供する。
 
 ```swift
 import ACPCore
 
-// Build an initialize request that a host sends to open a connection.
+// ホストが接続を開くために送信する initialize リクエストを構築する。
 let req = InitializeRequest(
     protocolVersion: .latest,
     clientCapabilities: ClientCapabilities(),
     clientInfo: Implementation(name: "MyHost", version: "1.0")
 )
 
-// Inspect the protocol version the host proposes.
+// ホストが提案するプロトコルバージョンを確認する。
 print(req.protocolVersion.value) // 1
 ```
 
 ## Topics
 
-### Handshake
+### ハンドシェイク
 
 - ``InitializeRequest``
 - ``InitializeResponse``
@@ -39,7 +39,7 @@ print(req.protocolVersion.value) // 1
 - ``AgentCapabilities``
 - ``ClientCapabilities``
 
-### Session Lifecycle
+### セッションライフサイクル
 
 - ``NewSessionRequest``
 - ``NewSessionResponse``
@@ -56,13 +56,13 @@ print(req.protocolVersion.value) // 1
 - ``SessionInfo``
 - ``SessionId``
 
-### Prompting
+### プロンプト
 
 - ``PromptRequest``
 - ``PromptResponse``
 - ``StopReason``
 
-### Session Updates
+### セッション更新
 
 - ``SessionNotification``
 - ``SessionUpdate``
@@ -70,7 +70,7 @@ print(req.protocolVersion.value) // 1
 - ``UsageUpdate``
 - ``SessionInfoUpdate``
 
-### Content
+### コンテンツ
 
 - ``ContentBlock``
 - ``Content``
@@ -82,7 +82,7 @@ print(req.protocolVersion.value) // 1
 - ``Role``
 - ``Annotations``
 
-### Authentication
+### 認証
 
 - ``AuthMethod``
 - ``AuthMethodAgent``
@@ -91,7 +91,7 @@ print(req.protocolVersion.value) // 1
 - ``LogoutRequest``
 - ``LogoutResponse``
 
-### Wire Envelopes
+### ワイヤーエンベロープ
 
 - ``AgentRequest``
 - ``ClientRequest``
@@ -100,11 +100,11 @@ print(req.protocolVersion.value) // 1
 - ``AgentNotification``
 - ``ClientNotification``
 
-### Method Registry
+### メソッドレジストリ
 
 - ``ACPMethod``
 
-### Support Types
+### サポート型
 
 - ``ACPCoreSchema``
 - ``MaybeUndefined``

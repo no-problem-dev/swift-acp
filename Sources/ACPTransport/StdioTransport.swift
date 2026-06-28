@@ -1,8 +1,8 @@
 import Foundation
 
-/// A JSON-RPC frame transport over a pair of file handles (stdin/stdout by
-/// default), framing messages as newline-delimited JSON — the canonical ACP
-/// stdio wire format. Output writes are serialized.
+/// ファイルハンドルのペア（デフォルトは stdin/stdout）上の JSON-RPC フレームトランスポート。
+/// メッセージを改行区切り JSON でフレーム化する（ACP の標準 stdio ワイヤーフォーマット）。
+/// 出力書き込みは直列化される。
 public final class StdioTransport: ACPMessageTransport, @unchecked Sendable {
     private let input: FileHandle
     private let output: FileHandle

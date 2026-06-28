@@ -1,20 +1,20 @@
 # ``ACPClient``
 
-The protocol that a host implements to lend file-system and terminal capabilities to an agent and to receive streaming session updates.
+ホストがエージェントにファイルシステム・ターミナルケーパビリティを提供し、ストリーミングセッション更新を受信するためのプロトコル。
 
 ## Overview
 
-`ACPClient` defines the **client side** of the Agent Client Protocol: the set of methods an agent may call back on its host. The host is typically an editor, a mobile app, or a CLI that manages the user-facing UI. Conforming to `ACPClient` lets any such host be plugged into the transport layer provided by `ACPTransport`.
+`ACPClient` は Agent Client Protocol の**クライアント側**を定義する：エージェントがホストにコールバックし得るメソッドのセット。ホストは通常、エディタ・モバイルアプリ・ユーザー向け UI を管理する CLI。`ACPClient` に準拠することで任意のホストを `ACPTransport` が提供するトランスポート層に接続できる。
 
-The protocol is organized around three concerns. The update channel method (`sessionUpdate(_:)`) is the most critical: the agent calls it for every streamed progress notification during a `prompt` turn, and the host is expected to render these to the user in real time. The file-system methods (`writeTextFile`, `readTextFile`) expose the host's file system to the agent — a host advertises support for them via `ClientCapabilities` during `initialize`. The terminal methods (`createTerminal`, `terminalOutput`, `releaseTerminal`, `waitForTerminalExit`, `killTerminal`) give the agent a supervised shell. Permission gating (`requestPermission`) lets the host approve or deny tool invocations before they execute. Extension methods (`ext`, `extNotification`) handle non-spec additions.
+プロトコルは 3 つの関心事に整理される。更新チャネルメソッド（`sessionUpdate(_:)`）が最も重要で、エージェントが `prompt` ターン中のすべてのストリーミング進捗通知でこれを呼び出し、ホストはリアルタイムでユーザーに描画する。ファイルシステムメソッド（`writeTextFile`・`readTextFile`）はホストのファイルシステムをエージェントに公開し、ホストは `initialize` 中に `ClientCapabilities` でサポートを通知する。ターミナルメソッド（`createTerminal`・`terminalOutput`・`releaseTerminal`・`waitForTerminalExit`・`killTerminal`）はエージェントに監視付きシェルを与える。パーミッションゲーティング（`requestPermission`）はツール呼び出しの実行前にホストが承認・拒否できるようにする。拡張メソッド（`ext`・`extNotification`）は仕様外追加を処理する。
 
-A host that only wants to observe updates without providing file-system or terminal access can use `StreamingSessionClient` from `ACPTransport` directly, which implements the protocol with sensible defaults.
+ファイルシステムやターミナルを提供せずに更新を観察するだけのホストには、`ACPTransport` の `StreamingSessionClient` を直接使える。これが妥当なデフォルトでプロトコルを実装する。
 
 ```swift
 import ACPCore
 import ACPClient
 
-// A minimal observer-only client that collects updates in an array.
+// 更新を配列に収集するだけの最小観察者クライアント。
 actor CollectingClient: ACPClient {
     private(set) var received: [SessionUpdate] = []
 
@@ -26,7 +26,7 @@ actor CollectingClient: ACPClient {
         fatalError("permissions not supported")
     }
 
-    // File-system and terminal methods would go here; not supported in this stub.
+    // ファイルシステム・ターミナルメソッドはここに実装する（このスタブでは未サポート）。
     func writeTextFile(_ r: WriteTextFileRequest) async throws -> WriteTextFileResponse { fatalError() }
     func readTextFile(_ r: ReadTextFileRequest) async throws -> ReadTextFileResponse { fatalError() }
     func createTerminal(_ r: CreateTerminalRequest) async throws -> CreateTerminalResponse { fatalError() }
@@ -41,6 +41,6 @@ actor CollectingClient: ACPClient {
 
 ## Topics
 
-### Role Contract
+### ロール契約
 
 - ``ACPClient``

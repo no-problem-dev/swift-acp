@@ -1,49 +1,49 @@
-/// A unique identifier for a conversation session between a client and agent.
+/// クライアントとエージェント間の会話セッションの一意識別子。
 public struct SessionId: ACPStringNewType {
     public let rawValue: String
     public init(_ value: String) { rawValue = value }
 }
 
-/// Unique identifier for a tool call within a session.
+/// セッション内のツール呼び出しの一意識別子。
 public struct ToolCallId: ACPStringNewType {
     public let rawValue: String
     public init(_ value: String) { rawValue = value }
 }
 
-/// Unique identifier for a message within a session.
+/// セッション内のメッセージの一意識別子。
 ///
-/// All chunks belonging to the same message share the same `MessageId`; a
-/// change indicates a new message has started.
+/// 同一メッセージのチャンクはすべて同じ `MessageId` を共有し、
+/// 変化は新しいメッセージの開始を示す。
 public struct MessageId: ACPStringNewType {
     public let rawValue: String
     public init(_ value: String) { rawValue = value }
 }
 
-/// Identifier for a permission option presented to the user.
+/// ユーザーに提示するパーミッションオプションの識別子。
 public struct PermissionOptionId: ACPStringNewType {
     public let rawValue: String
     public init(_ value: String) { rawValue = value }
 }
 
-/// Identifier for a session mode (e.g. "ask", "code").
+/// セッションモード（例: "ask"、"code"）の識別子。
 public struct SessionModeId: ACPStringNewType {
     public let rawValue: String
     public init(_ value: String) { rawValue = value }
 }
 
-/// Identifier for a session configuration option.
+/// セッション設定オプションの識別子。
 public struct SessionConfigId: ACPStringNewType {
     public let rawValue: String
     public init(_ value: String) { rawValue = value }
 }
 
-/// Identifier for a group of session configuration options.
+/// セッション設定オプショングループの識別子。
 public struct SessionConfigGroupId: ACPStringNewType {
     public let rawValue: String
     public init(_ value: String) { rawValue = value }
 }
 
-/// Identifier for a value within a session configuration option.
+/// セッション設定オプション内の値の識別子。
 public struct SessionConfigValueId: ACPStringNewType {
     public let rawValue: String
     public init(_ value: String) { rawValue = value }

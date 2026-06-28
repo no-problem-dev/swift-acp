@@ -1,4 +1,4 @@
-/// Cost information for a session.
+/// セッションのコスト情報。
 public struct Cost: ACPSchemaType {
     public var amount: Double
     public var currency: String
@@ -9,7 +9,7 @@ public struct Cost: ACPSchemaType {
     }
 }
 
-/// Context window and cost update for a session.
+/// セッションのコンテキストウィンドウとコストの更新。
 public struct UsageUpdate: ACPSchemaType {
     public var used: UInt64
     public var size: UInt64
@@ -29,7 +29,7 @@ public struct UsageUpdate: ACPSchemaType {
     }
 }
 
-/// The current mode of the session has changed.
+/// セッションの現在モードが変化したことを示す更新。
 public struct CurrentModeUpdate: ACPSchemaType {
     public var currentModeId: SessionModeId
     public var meta: Meta?
@@ -45,7 +45,7 @@ public struct CurrentModeUpdate: ACPSchemaType {
     }
 }
 
-/// Session configuration options have been updated.
+/// セッション設定オプションが更新されたことを示す更新。
 public struct ConfigOptionUpdate: ACPSchemaType {
     public var configOptions: [SessionConfigOption]
     public var meta: Meta?
@@ -61,8 +61,7 @@ public struct ConfigOptionUpdate: ACPSchemaType {
     }
 }
 
-/// An update to session metadata. `title`/`updatedAt` are tri-state: omit to
-/// leave unchanged, `null` to clear, or a value to set.
+/// セッションメタデータの更新。`title`/`updatedAt` は 3 状態：省略で変更なし・`null` でクリア・値で設定。
 public struct SessionInfoUpdate: ACPSchemaType {
     public var title: MaybeUndefined<String>
     public var updatedAt: MaybeUndefined<String>
@@ -102,10 +101,9 @@ public struct SessionInfoUpdate: ACPSchemaType {
     }
 }
 
-/// A real-time update streamed during prompt processing.
+/// プロンプト処理中にストリームで配信されるリアルタイム更新。
 ///
-/// Internally tagged on `sessionUpdate`. An unrecognised tag is preserved as
-/// `.unknown`.
+/// `sessionUpdate` フィールドで内部タグ付けされる。未知のタグは `.unknown` として保持する。
 public enum SessionUpdate: ACPSchemaType {
     case userMessageChunk(ContentChunk)
     case agentMessageChunk(ContentChunk)
@@ -164,7 +162,7 @@ public enum SessionUpdate: ACPSchemaType {
     }
 }
 
-/// A notification carrying a session update from the agent.
+/// エージェントからのセッション更新を運ぶ通知。
 public struct SessionNotification: ACPSchemaType {
     public var sessionId: SessionId
     public var update: SessionUpdate
