@@ -30,6 +30,22 @@ cross as Swift values with no serialization; over stdio they are JSON-RPC.
 | `ACPClient` | The client/host-role contract (`protocol ACPClient`) |
 | `ACPTransport` | `InProcessConnection` (typed, no serialization) + `StdioTransport`/`AgentConnection` (JSON-RPC) + `StreamingSessionClient` |
 
+## Installation
+
+```swift
+// Package.swift
+dependencies: [
+    .package(url: "https://github.com/no-problem-dev/swift-acp.git", from: "0.1.0")
+]
+```
+
+```swift
+.target(name: "YourTarget", dependencies: [
+    .product(name: "ACPTransport", package: "swift-acp"),   // transports + role contracts + types
+    // .product(name: "ACPCore", package: "swift-acp"),     // domain types only
+])
+```
+
 ## In-process (no serialization)
 
 ```swift
