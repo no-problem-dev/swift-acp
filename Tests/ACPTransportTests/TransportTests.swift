@@ -123,7 +123,7 @@ struct TransportTests {
         defer { loop.cancel() }
 
         let codec = JSONRPCCodec()
-        let params = try codec.value(PromptRequest(sessionId: "s1", prompt: [.text(TextContent(text: "hi"))]))
+        let params = try codec.jsonValue(from: PromptRequest(sessionId: "s1", prompt: [.text(TextContent(text: "hi"))]))
         try await clientTransport.send(
             try codec.encodeRequest(id: .number(1), method: ACPMethod.Agent.sessionPrompt, params: params)
         )
