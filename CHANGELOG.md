@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-08-11
+
 ### Changed
 
 - Builds and tests on Linux. `StdioTransport` used `FileHandle.bytes`, which is Apple-only; it now
