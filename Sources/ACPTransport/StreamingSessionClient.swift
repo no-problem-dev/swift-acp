@@ -1,13 +1,17 @@
 import ACPCore
 import ACPClient
 
-/// エージェントを観察するホスト向けの `ACPClient` 実装。
+/// A client for a host that watches an agent rather than lending it anything.
 ///
-/// `session/update` 通知を `AsyncStream`（UI が描画する進捗チャネル）に流し込み、
-/// パーミッションリクエストを非同期ハンドラにルーティングする。
-/// ファイルシステム・ターミナルメソッドはデフォルトで未サポート——純粋な観察者はどちらのケーパビリティも通知しない。
+/// Updates go into an `AsyncStream` for a UI to render, and permission requests go to the handler
+/// supplied at construction. Every file-system and terminal method throws — a host using this
+/// should advertise no such capabilities during initialization.
 public final class StreamingSessionClient: ACPClient, Sendable {
-    /// エージェントからのセッション更新のライブストリーム。
+    /// The agent's updates, in the order it published them.
+    ///
+    /// Buffers without bound, so nothing is dropped if the consumer falls behind. There is one
+    /// stream and it is single-consumer: a second iteration sees only what arrives afterwards.
+    /// Finishes when `finish()` is called, never on its own.
     public let updates: AsyncStream<SessionNotification>
 
     private let continuation: AsyncStream<SessionNotification>.Continuation
@@ -25,7 +29,8 @@ public final class StreamingSessionClient: ACPClient, Sendable {
         permissionHandler = onPermission
     }
 
-    /// 更新ストリームをクローズする。`updates` を反復する消費者はここで終了する。
+    /// Closes the update stream, ending the consumer's loop. Idempotent, and not reversible —
+    /// updates published afterwards are dropped.
     public func finish() {
         continuation.finish()
     }

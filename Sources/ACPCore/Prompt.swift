@@ -1,4 +1,5 @@
-/// エージェントがプロンプトターンの処理を停止した理由。
+/// Why a turn ended — normally, because it was cancelled, or because a limit was hit. Open:
+/// unknown values decode unchanged.
 public struct StopReason: ACPStringNewType {
     public let rawValue: String
     public init(_ value: String) { rawValue = value }
@@ -10,7 +11,7 @@ public struct StopReason: ACPStringNewType {
     public static let cancelled = StopReason("cancelled")
 }
 
-/// エージェントにユーザープロンプトを送信するリクエストパラメータ。
+/// The prompt to run, as content blocks so it can carry more than text.
 public struct PromptRequest: ACPSchemaType {
     public var sessionId: SessionId
     public var prompt: [ContentBlock]
@@ -28,7 +29,7 @@ public struct PromptRequest: ACPSchemaType {
     }
 }
 
-/// ユーザープロンプト処理後のレスポンス。
+/// The end of a turn. The work itself arrived as streamed updates; this says only why it stopped.
 public struct PromptResponse: ACPSchemaType {
     public var stopReason: StopReason
     public var meta: Meta?

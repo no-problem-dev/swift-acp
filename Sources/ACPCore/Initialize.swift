@@ -1,6 +1,7 @@
-/// プロトコルバージョン識別子。
+/// The protocol revision two peers agree on during initialization.
 ///
-/// 裸の整数として直列化される。破壊的変更時のみインクリメントし、非破壊的変更はケーパビリティで導入する。
+/// A bare integer on the wire. It moves only for a breaking change; everything additive arrives as
+/// a capability instead, which is why one version number covers a lot of ground.
 public struct ProtocolVersion: ACPSchemaType {
     public var value: UInt16
 
@@ -19,7 +20,7 @@ public struct ProtocolVersion: ACPSchemaType {
     }
 }
 
-/// クライアントまたはエージェントの実装に関するメタデータ。
+/// Who the peer is — name and version — for logging and for working around known implementations.
 public struct Implementation: ACPSchemaType {
     public var name: String
     public var title: String?
@@ -39,9 +40,10 @@ public struct Implementation: ACPSchemaType {
     }
 }
 
-/// エージェントが `session/prompt` リクエストでサポートするプロンプトケーパビリティ。
+/// Which content kinds an agent accepts in a prompt beyond plain text.
 ///
-/// ブールフラグはワイヤー上で常に存在する（デフォルト `false`）。
+/// The flags are always present on the wire, defaulting to `false`, so an agent that says nothing
+/// is taken to accept text only.
 public struct PromptCapabilities: ACPSchemaType {
     public var image: Bool
     public var audio: Bool
@@ -66,7 +68,7 @@ public struct PromptCapabilities: ACPSchemaType {
     }
 }
 
-/// エージェントがサポートする MCP ケーパビリティ。
+/// Which MCP transports an agent can connect to. Stdio is mandatory and therefore not listed.
 public struct McpCapabilities: ACPSchemaType {
     public var http: Bool
     public var sse: Bool
@@ -84,42 +86,46 @@ public struct McpCapabilities: ACPSchemaType {
     }
 }
 
-/// `session/list` メソッドのケーパビリティ。存在（`{}`）がサポートを示す。
+/// Marks `session/list` as supported. Presence is the signal — an empty object means yes, absence
+/// means no.
 public struct SessionListCapabilities: ACPSchemaType {
     public var meta: Meta?
     public init(meta: Meta? = nil) { self.meta = meta }
     private enum CodingKeys: String, CodingKey { case meta = "_meta" }
 }
 
-/// `session/delete` メソッドのケーパビリティ。存在（`{}`）がサポートを示す。
+/// Marks `session/delete` as supported. Presence is the signal.
 public struct SessionDeleteCapabilities: ACPSchemaType {
     public var meta: Meta?
     public init(meta: Meta? = nil) { self.meta = meta }
     private enum CodingKeys: String, CodingKey { case meta = "_meta" }
 }
 
-/// 追加セッションディレクトリのサポートケーパビリティ。存在（`{}`）がサポートを示す。
+/// Marks additional session directories as supported. Presence is the signal.
 public struct SessionAdditionalDirectoriesCapabilities: ACPSchemaType {
     public var meta: Meta?
     public init(meta: Meta? = nil) { self.meta = meta }
     private enum CodingKeys: String, CodingKey { case meta = "_meta" }
 }
 
-/// `session/resume` メソッドのケーパビリティ。存在（`{}`）がサポートを示す。
+/// Marks `session/resume` as supported. Presence is the signal.
 public struct SessionResumeCapabilities: ACPSchemaType {
     public var meta: Meta?
     public init(meta: Meta? = nil) { self.meta = meta }
     private enum CodingKeys: String, CodingKey { case meta = "_meta" }
 }
 
-/// `session/close` メソッドのケーパビリティ。存在（`{}`）がサポートを示す。
+/// Marks `session/close` as supported. Presence is the signal.
 public struct SessionCloseCapabilities: ACPSchemaType {
     public var meta: Meta?
     public init(meta: Meta? = nil) { self.meta = meta }
     private enum CodingKeys: String, CodingKey { case meta = "_meta" }
 }
 
-/// エージェントがサポートするセッションケーパビリティ。オプションのサブケーパビリティは存在（`{}`）でサポートを示し、省略または `null` は未サポートを意味する。
+/// Which session operations an agent supports beyond the mandatory ones.
+///
+/// Each sub-capability signals support by being present, even as an empty object; absent and `null`
+/// both mean unsupported. That is why these are optionals of empty structs rather than booleans.
 public struct SessionCapabilities: ACPSchemaType {
     public var list: SessionListCapabilities?
     public var delete: SessionDeleteCapabilities?
@@ -150,14 +156,14 @@ public struct SessionCapabilities: ACPSchemaType {
     }
 }
 
-/// エージェントがサポートするログアウトケーパビリティ。存在（`{}`）がサポートを示す。
+/// Marks `logout` as supported. Presence is the signal.
 public struct LogoutCapabilities: ACPSchemaType {
     public var meta: Meta?
     public init(meta: Meta? = nil) { self.meta = meta }
     private enum CodingKeys: String, CodingKey { case meta = "_meta" }
 }
 
-/// エージェントがサポートする認証関連のケーパビリティ。
+/// Which authentication-related operations an agent supports.
 public struct AgentAuthCapabilities: ACPSchemaType {
     public var logout: LogoutCapabilities?
     public var meta: Meta?
@@ -173,7 +179,7 @@ public struct AgentAuthCapabilities: ACPSchemaType {
     }
 }
 
-/// 初期化時にエージェントが通知するケーパビリティ。
+/// What the agent can do, sent once in response to initialization and fixed for the connection.
 public struct AgentCapabilities: ACPSchemaType {
     public var loadSession: Bool
     public var promptCapabilities: PromptCapabilities
@@ -204,7 +210,7 @@ public struct AgentCapabilities: ACPSchemaType {
     }
 }
 
-/// `initialize` メソッドのリクエストパラメータ。
+/// Opens the connection: the version the client speaks and what it can lend the agent.
 public struct InitializeRequest: ACPSchemaType {
     public var protocolVersion: ProtocolVersion
     public var clientCapabilities: ClientCapabilities
@@ -245,7 +251,8 @@ public struct InitializeRequest: ACPSchemaType {
     }
 }
 
-/// `initialize` メソッドへのレスポンス。
+/// The agent's half of the handshake: the version it settled on, what it can do, and how to
+/// authenticate.
 public struct InitializeResponse: ACPSchemaType {
     public var protocolVersion: ProtocolVersion
     public var agentCapabilities: AgentCapabilities

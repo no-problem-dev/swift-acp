@@ -1,6 +1,6 @@
-/// 新しいセッションを作成するリクエストパラメータ。
+/// Creates a session, naming the working directory and any MCP servers the agent may use.
 ///
-/// `additionalDirectories` は空のときワイヤーから省略される。
+/// `additionalDirectories` is omitted from the wire when empty.
 public struct NewSessionRequest: ACPSchemaType {
     public var cwd: String
     public var additionalDirectories: [String]
@@ -43,7 +43,7 @@ public struct NewSessionRequest: ACPSchemaType {
     }
 }
 
-/// 新しいセッション作成のレスポンス。
+/// The new session's identifier, and the modes and options it starts with.
 public struct NewSessionResponse: ACPSchemaType {
     public var sessionId: SessionId
     public var modes: SessionModeState?
@@ -68,9 +68,10 @@ public struct NewSessionResponse: ACPSchemaType {
     }
 }
 
-/// 既存セッションをロードするリクエストパラメータ。
+/// Reopens an earlier session. The agent replays its history as `session/update` notifications
+/// before this call returns, so a host should already be listening.
 ///
-/// `additionalDirectories` は空のときワイヤーから省略される。
+/// `additionalDirectories` is omitted from the wire when empty.
 public struct LoadSessionRequest: ACPSchemaType {
     public var mcpServers: [McpServer]
     public var cwd: String
@@ -118,7 +119,7 @@ public struct LoadSessionRequest: ACPSchemaType {
     }
 }
 
-/// 既存セッションのロードレスポンス。
+/// The reloaded session's modes and options. The history arrived as updates, not here.
 public struct LoadSessionResponse: ACPSchemaType {
     public var modes: SessionModeState?
     public var configOptions: [SessionConfigOption]?
@@ -140,7 +141,10 @@ public struct LoadSessionResponse: ACPSchemaType {
     }
 }
 
-/// 既存セッションの一覧を取得するリクエストパラメータ。`cwd`/`cursor` は null 許容フィルタで、省略と `null` は等価。
+/// Lists the agent's sessions.
+///
+/// `cwd` and `cursor` are nullable filters where absent and `null` mean the same thing — unlike
+/// `SessionInfoUpdate`, where the distinction matters.
 public struct ListSessionsRequest: ACPSchemaType {
     public var cwd: String?
     public var cursor: String?
@@ -158,7 +162,7 @@ public struct ListSessionsRequest: ACPSchemaType {
     }
 }
 
-/// セッション一覧取得のレスポンス。
+/// A page of sessions, with a cursor for the next page when there is one.
 public struct ListSessionsResponse: ACPSchemaType {
     public var sessions: [SessionInfo]
     public var nextCursor: String?
@@ -176,9 +180,9 @@ public struct ListSessionsResponse: ACPSchemaType {
     }
 }
 
-/// 既存セッションを再開するリクエストパラメータ。
+/// Resumes a closed session so it can take prompts again.
 ///
-/// `additionalDirectories` と `mcpServers` は空のときワイヤーから省略される。
+/// `additionalDirectories` and `mcpServers` are omitted from the wire when empty.
 public struct ResumeSessionRequest: ACPSchemaType {
     public var sessionId: SessionId
     public var cwd: String
@@ -226,7 +230,7 @@ public struct ResumeSessionRequest: ACPSchemaType {
     }
 }
 
-/// セッション再開のレスポンス。
+/// The resumed session's modes and options.
 public struct ResumeSessionResponse: ACPSchemaType {
     public var modes: SessionModeState?
     public var configOptions: [SessionConfigOption]?
@@ -248,7 +252,7 @@ public struct ResumeSessionResponse: ACPSchemaType {
     }
 }
 
-/// `session/list` から既存セッションを削除するリクエストパラメータ。
+/// Deletes a session and its history. Not reversible.
 public struct DeleteSessionRequest: ACPSchemaType {
     public var sessionId: SessionId
     public var meta: Meta?
@@ -264,14 +268,14 @@ public struct DeleteSessionRequest: ACPSchemaType {
     }
 }
 
-/// セッション削除のレスポンス。
+/// The reply to a delete, carrying nothing but `_meta`.
 public struct DeleteSessionResponse: ACPSchemaType {
     public var meta: Meta?
     public init(meta: Meta? = nil) { self.meta = meta }
     private enum CodingKeys: String, CodingKey { case meta = "_meta" }
 }
 
-/// アクティブなセッションをクローズするリクエストパラメータ。
+/// Closes a session without deleting it, so it can be resumed later.
 public struct CloseSessionRequest: ACPSchemaType {
     public var sessionId: SessionId
     public var meta: Meta?
@@ -287,16 +291,16 @@ public struct CloseSessionRequest: ACPSchemaType {
     }
 }
 
-/// セッションクローズのレスポンス。
+/// The reply to a close, carrying nothing but `_meta`.
 public struct CloseSessionResponse: ACPSchemaType {
     public var meta: Meta?
     public init(meta: Meta? = nil) { self.meta = meta }
     private enum CodingKeys: String, CodingKey { case meta = "_meta" }
 }
 
-/// `session/list` が返すセッション情報。
+/// One session as it appears in a listing.
 ///
-/// `additionalDirectories` は空のときワイヤーから省略される。
+/// `additionalDirectories` is omitted from the wire when empty.
 public struct SessionInfo: ACPSchemaType {
     public var sessionId: SessionId
     public var cwd: String
@@ -349,7 +353,7 @@ public struct SessionInfo: ACPSchemaType {
     }
 }
 
-/// エージェントが動作できるモード。
+/// One mode an agent can operate in, such as asking before acting or editing directly.
 public struct SessionMode: ACPSchemaType {
     public var id: SessionModeId
     public var name: String
@@ -369,7 +373,7 @@ public struct SessionMode: ACPSchemaType {
     }
 }
 
-/// エージェントが動作できるモードのセットと現在アクティブなモード。
+/// The modes available and which one is active.
 public struct SessionModeState: ACPSchemaType {
     public var currentModeId: SessionModeId
     public var availableModes: [SessionMode]
@@ -387,7 +391,7 @@ public struct SessionModeState: ACPSchemaType {
     }
 }
 
-/// セッションモードを設定するリクエストパラメータ。
+/// Switches the session to another mode.
 public struct SetSessionModeRequest: ACPSchemaType {
     public var sessionId: SessionId
     public var modeId: SessionModeId
@@ -405,7 +409,7 @@ public struct SetSessionModeRequest: ACPSchemaType {
     }
 }
 
-/// `session/set_mode` メソッドへのレスポンス。
+/// The reply to a mode change, carrying nothing but `_meta`.
 public struct SetSessionModeResponse: ACPSchemaType {
     public var meta: Meta?
     public init(meta: Meta? = nil) { self.meta = meta }

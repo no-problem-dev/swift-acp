@@ -1,4 +1,5 @@
-/// ユーザーに提示するパーミッションオプションの種別。
+/// What kind of choice an option represents, so a client can style it — allowing once versus
+/// always, rejecting versus cancelling. Open: unknown values decode unchanged.
 public struct PermissionOptionKind: ACPStringNewType {
     public let rawValue: String
     public init(_ value: String) { rawValue = value }
@@ -9,7 +10,7 @@ public struct PermissionOptionKind: ACPStringNewType {
     public static let rejectAlways = PermissionOptionKind("reject_always")
 }
 
-/// パーミッションリクエスト時にユーザーに提示するオプション。
+/// One choice offered to the user, identified so the response can name which was taken.
 public struct PermissionOption: ACPSchemaType {
     public var optionId: PermissionOptionId
     public var name: String
@@ -29,7 +30,7 @@ public struct PermissionOption: ACPSchemaType {
     }
 }
 
-/// ツール呼び出し実行のためのユーザーパーミッションリクエスト。
+/// Asks the user to approve a tool call. The agent blocks until this is answered.
 public struct RequestPermissionRequest: ACPSchemaType {
     public var sessionId: SessionId
     public var toolCall: ToolCallUpdate
@@ -54,7 +55,7 @@ public struct RequestPermissionRequest: ACPSchemaType {
     }
 }
 
-/// ユーザーが提示されたパーミッションオプションを選択した結果。
+/// The outcome when the user picked one of the offered options.
 public struct SelectedPermissionOutcome: ACPSchemaType {
     public var optionId: PermissionOptionId
     public var meta: Meta?
@@ -70,7 +71,10 @@ public struct SelectedPermissionOutcome: ACPSchemaType {
     }
 }
 
-/// パーミッションリクエストの結果。`outcome` フィールドで内部タグ付けされる。
+/// What came of a permission request: a choice, or a cancellation.
+///
+/// Tagged by an `outcome` member. Cancellation is not a refusal — it means the turn ended before
+/// the user answered.
 public enum RequestPermissionOutcome: ACPSchemaType {
     case cancelled
     case selected(SelectedPermissionOutcome)
@@ -102,7 +106,7 @@ public enum RequestPermissionOutcome: ACPSchemaType {
     }
 }
 
-/// パーミッションリクエストへのレスポンス。
+/// The reply to a permission request.
 public struct RequestPermissionResponse: ACPSchemaType {
     public var outcome: RequestPermissionOutcome
     public var meta: Meta?

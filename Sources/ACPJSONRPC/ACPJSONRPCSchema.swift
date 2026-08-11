@@ -1,7 +1,8 @@
-/// JSON-RPC レイヤーが所有するスキーマ定義の一覧。
+/// The schema definitions this layer owns, as opposed to the ACP domain definitions in
+/// `ACPCoreSchema`.
 ///
-/// コンフォーマンステストスイートがこれを `ACPCoreSchema.types` と合算し、
-/// ピン留めされたワイヤースキーマの全 `$defs` エントリが過不足なくモデル化されていることを検証する。
+/// The conformance suite unions the two and requires the result to equal the pinned schema's
+/// `$defs` exactly. A type not listed here is not checked, whatever its conformances.
 public enum ACPJSONRPCSchema {
     public static let types: [any ACPSchemaType.Type] = [
         RequestId.self,

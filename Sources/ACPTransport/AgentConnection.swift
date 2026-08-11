@@ -3,13 +3,20 @@ import ACPCore
 import ACPAgent
 import ACPClient
 
-/// JSON-RPC フレームトランスポート上で `ACPAgent` を提供するアクター。
+/// Serves an `ACPAgent` over a frame transport, and gives that agent a client proxy pointing back
+/// down the same connection.
 ///
-/// 受信するクライアントリクエスト・通知をメソッド名でデコードしてエージェントへディスパッチし、
-/// レスポンスをエンコードして返送する。エージェントには `RemoteClient` が渡され、
-/// `session/update`・`session/request_permission`・`fs/*`・`terminal/*` の呼び出しが
-/// 同一トランスポート経由でマーシャリングされる。
-/// `InProcessConnection` の直列化版——同じエージェントコントラクトを stdio 経由で提供する。
+/// The serialized counterpart of `InProcessConnection`: the same agent contract, reached over
+/// stdio. Incoming requests and notifications are decoded by method name and dispatched; the
+/// agent's own calls — updates, permission requests, file-system and terminal work — are marshalled
+/// back out as JSON-RPC.
+///
+/// - Important: Frames are dispatched on independent tasks, so **handling order is not the order
+///   they arrived in**. Two notifications sent back to back may be processed in either order. An
+///   agent that depends on ordering must impose it itself.
+///
+/// A frame that fails to decode ends `run()` by throwing, and the pending-request cleanup that
+/// follows the read loop does not run in that case — outstanding calls stay suspended.
 public actor AgentConnection {
     private let transport: any ACPMessageTransport
     private let codec = JSONRPCCodec()
@@ -21,23 +28,28 @@ public actor AgentConnection {
         self.transport = transport
     }
 
-    /// 読み取りループ開始前にエージェントをセットアップする。
+    /// Installs the agent. Call once, before `run()`.
     ///
-    /// `run()` の前に 1 回呼び出す。`makeAgent` クロージャは `session/update` 通知送信や
-    /// `fs/*`/`terminal/*` リクエストに使う `RemoteClient` を受け取る。
+    /// Without it, incoming requests are dropped without an answer — the caller waits forever
+    /// rather than receiving an error.
     ///
-    /// - Parameter makeAgent: 具体的な `ACPAgent` 実装を返すクロージャ。提供されたクライアントプロキシにバインドされる。
+    /// - Parameter makeAgent: Builds the agent, receiving the client proxy it should report
+    ///   through. Every call on that proxy is marshalled over this connection.
     public func start(makeAgent: (any ACPClient) -> any ACPAgent) {
         agent = makeAgent(RemoteClient(connection: self))
     }
 
-    /// トランスポートがクローズまたは例外をスローするまで読み取り・ディスパッチループを実行する。
+    /// Reads and dispatches until the transport closes or fails.
     ///
-    /// トランスポートからフレームを読み取り、各フレームを分類してエージェントへディスパッチ（client → agent リクエスト・通知）するか、
-    /// 保留中の継続を解決（agent → client レスポンス）する。トランスポート終了時、
-    /// すべての保留中リクエストは `ACPTransportError.closed` でキャンセルされる。
+    /// Each frame is either dispatched to the agent — for an inbound request or notification — or
+    /// used to resolve a call the agent made. On a clean close, every outstanding call fails with
+    /// `ACPTransportError.closed`.
     ///
-    /// `run()` を呼び出す前に `start(makeAgent:)` を呼び出すこと。
+    /// Dispatch is fire-and-forget: each frame gets its own task, so handling may overlap and may
+    /// complete out of order. Only the reading is sequential.
+    ///
+    /// - Throws: Whatever the transport throws, and a decoding error if a frame is malformed. In
+    ///   the throwing cases outstanding calls are left suspended rather than failed.
     public func run() async throws {
         for try await frame in transport.messages() {
             let classified = try codec.decode(frame)
@@ -156,8 +168,12 @@ public actor AgentConnection {
     }
 }
 
-/// トランスポート経由でサービスされるエージェントが使うクライアントプロキシ。
-/// 各呼び出しは `AgentConnection` 上の JSON-RPC リクエスト・通知にマーシャリングされる。
+/// The client an agent sees when it is served over a transport. Every call becomes an outbound
+/// JSON-RPC request or notification on the connection.
+///
+/// Requests carry a monotonically increasing numeric id and suspend until the matching response
+/// arrives; there is no timeout, so a peer that never answers leaves the call suspended until the
+/// transport closes.
 private struct RemoteClient: ACPClient {
     let connection: AgentConnection
     private let codec = JSONRPCCodec()

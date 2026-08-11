@@ -1,8 +1,11 @@
-/// JSON-RPC リクエスト識別子。
+/// A request identifier: a string, an integer, or null, as JSON-RPC 2.0 allows.
 ///
-/// JSON-RPC 2.0 仕様では id は文字列・整数・null のいずれか。
-/// タグなし（裸のスカラー）で符号化され、対応するレスポンスにそのまま返却されることで
-/// 呼び出し側がリクエストとレスポンスを対応付けられる。
+/// Encoded as a bare scalar with no wrapper, and echoed verbatim in the response so a caller can
+/// match the two.
+///
+/// - Note: `null` is modelled here because the specification permits it, but the frame classifier
+///   in `ACPTransport` cannot distinguish a null id from an absent one — a request with a null id
+///   is read as a notification, and a response with one is rejected as malformed.
 public enum RequestId: ACPSchemaType, Hashable {
     case null
     case number(Int64)

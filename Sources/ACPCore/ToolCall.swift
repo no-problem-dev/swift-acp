@@ -1,6 +1,6 @@
-/// 呼び出すツールのカテゴリ。クライアントがアイコンや UI を選ぶために使用する。
+/// What kind of thing a tool does, so a client can pick an icon and a presentation.
 ///
-/// オープン列挙：未知の種別はそのままデコードされる。デフォルトは `.other`。
+/// Open: an unrecognized kind decodes unchanged. `.other` is the value to use when none fits.
 public struct ToolKind: ACPStringNewType {
     public let rawValue: String
     public init(_ value: String) { rawValue = value }
@@ -17,7 +17,8 @@ public struct ToolKind: ACPStringNewType {
     public static let other = ToolKind("other")
 }
 
-/// ツール呼び出しの実行ステータス。デフォルトは `.pending`。
+/// Where a tool call stands. A call starts pending and is expected to reach completed or failed.
+/// Open: unknown values decode unchanged.
 public struct ToolCallStatus: ACPStringNewType {
     public let rawValue: String
     public init(_ value: String) { rawValue = value }
@@ -28,15 +29,17 @@ public struct ToolCallStatus: ACPStringNewType {
     public static let failed = ToolCallStatus("failed")
 }
 
-/// `terminal/create` で作成したターミナルの識別子。
+/// Identifies a terminal created by `terminal/create`.
 ///
-/// ワイヤースキーマでは文字列としてインライン定義（独立した `$defs` エントリではない）。
+/// Defined inline as a string in the wire schema rather than as its own `$defs` entry, which is why
+/// it is absent from the schema-coverage registry.
 public struct TerminalId: ACPStringNewType {
     public let rawValue: String
     public init(_ value: String) { rawValue = value }
 }
 
-/// クライアント UI 表示用のファイル変更差分。
+/// A file change, as before-and-after text for the client to render. `oldText` is absent for a new
+/// file.
 public struct Diff: ACPSchemaType {
     public var path: String
     public var oldText: String?
@@ -56,7 +59,8 @@ public struct Diff: ACPSchemaType {
     }
 }
 
-/// ツール呼び出しコンテンツに埋め込まれた既存ターミナルへの参照。
+/// Points a tool call's output at a terminal the client already created, rather than repeating its
+/// output.
 public struct Terminal: ACPSchemaType {
     public var terminalId: TerminalId
     public var meta: Meta?
@@ -72,7 +76,7 @@ public struct Terminal: ACPSchemaType {
     }
 }
 
-/// ツールがアクセス・変更したファイル位置。"follow-along" 機能向け。
+/// A place in a file the tool touched, so a client can follow along in an editor.
 public struct ToolCallLocation: ACPSchemaType {
     public var path: String
     public var line: UInt32?
@@ -90,9 +94,10 @@ public struct ToolCallLocation: ACPSchemaType {
     }
 }
 
-/// ツール呼び出しが生成するコンテンツ：コンテンツブロック・差分・ターミナルのいずれか。
+/// What a tool call produced: content, a diff, or a terminal to watch.
 ///
-/// `type` フィールドで内部タグ付けされる。未知の `type` は `.unknown` として保持する。
+/// Tagged by a `type` member. An unrecognized type decodes to `.unknown` holding the original JSON,
+/// so it survives a round trip.
 public enum ToolCallContent: ACPSchemaType {
     case content(Content)
     case diff(Diff)
@@ -127,10 +132,10 @@ public enum ToolCallContent: ACPSchemaType {
     }
 }
 
-/// 言語モデルがエージェントに実行を要求したツール呼び出し。
+/// A tool call the model asked the agent to make, reported so the client can show it.
 ///
-/// `kind`・`status`・`content`/`locations` コレクションはデフォルト（空）値のとき
-/// ワイヤーから省略される（リファレンス実装に準拠）。
+/// `kind`, `status`, `content` and `locations` are omitted from the wire at their default or empty
+/// values, matching the reference implementation.
 public struct ToolCall: ACPSchemaType {
     public var toolCallId: ToolCallId
     public var title: String
@@ -196,8 +201,10 @@ public struct ToolCall: ACPSchemaType {
     }
 }
 
-/// 既存ツール呼び出しへの更新。`toolCallId` 以外のフィールドはすべて省略可能で、変化したフィールドのみを含む。
-/// （`ToolCallUpdateFields` がこのオブジェクトにワイヤーレベルでフラット化されている。）
+/// A revision to a tool call already reported, carrying only what changed.
+///
+/// Everything but `toolCallId` is optional, and absent means unchanged rather than cleared. The
+/// updatable fields are flattened into this object on the wire rather than nested.
 public struct ToolCallUpdate: ACPSchemaType {
     public var toolCallId: ToolCallId
     public var kind: ToolKind?

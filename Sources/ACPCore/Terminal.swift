@@ -1,4 +1,4 @@
-/// ターミナルでコマンドを起動するときに設定する環境変数。
+/// One environment variable to set for a terminal command.
 public struct EnvVariable: ACPSchemaType {
     public var name: String
     public var value: String
@@ -16,7 +16,7 @@ public struct EnvVariable: ACPSchemaType {
     }
 }
 
-/// ターミナルコマンドの終了ステータス。
+/// How a terminal command ended: an exit code, a signal, or neither if it is still running.
 public struct TerminalExitStatus: ACPSchemaType {
     public var exitCode: UInt32?
     public var signal: String?
@@ -34,9 +34,10 @@ public struct TerminalExitStatus: ACPSchemaType {
     }
 }
 
-/// 新しいターミナルを作成してコマンドを実行するリクエスト。
+/// Asks the client to run a command in a new terminal. Returns as soon as it starts, not when it
+/// finishes.
 ///
-/// `args` と `env` は空のときワイヤーから省略される。
+/// `args` and `env` are omitted from the wire when empty.
 public struct CreateTerminalRequest: ACPSchemaType {
     public var sessionId: SessionId
     public var command: String
@@ -92,7 +93,7 @@ public struct CreateTerminalRequest: ACPSchemaType {
     }
 }
 
-/// `terminal/create` へのレスポンス。新しいターミナルの `terminalId` を持つ。
+/// The identifier of the new terminal, used for every later call about it.
 public struct CreateTerminalResponse: ACPSchemaType {
     public var terminalId: TerminalId
     public var meta: Meta?
@@ -108,7 +109,7 @@ public struct CreateTerminalResponse: ACPSchemaType {
     }
 }
 
-/// ターミナルの現在の出力とステータスを取得するリクエスト。
+/// Asks for what a terminal has produced so far. May be called repeatedly while it runs.
 public struct TerminalOutputRequest: ACPSchemaType {
     public var sessionId: SessionId
     public var terminalId: TerminalId
@@ -126,7 +127,7 @@ public struct TerminalOutputRequest: ACPSchemaType {
     }
 }
 
-/// `terminal/output` へのレスポンス。
+/// The output so far, and the exit status if the command has finished.
 public struct TerminalOutputResponse: ACPSchemaType {
     public var output: String
     public var truncated: Bool
@@ -146,7 +147,7 @@ public struct TerminalOutputResponse: ACPSchemaType {
     }
 }
 
-/// ターミナルを解放してリソースを解放するリクエスト。
+/// Releases a terminal. Its identifier is invalid afterwards and its output is no longer readable.
 public struct ReleaseTerminalRequest: ACPSchemaType {
     public var sessionId: SessionId
     public var terminalId: TerminalId
@@ -164,14 +165,14 @@ public struct ReleaseTerminalRequest: ACPSchemaType {
     }
 }
 
-/// `terminal/release` へのレスポンス。
+/// The reply to a release, carrying nothing but `_meta`.
 public struct ReleaseTerminalResponse: ACPSchemaType {
     public var meta: Meta?
     public init(meta: Meta? = nil) { self.meta = meta }
     private enum CodingKeys: String, CodingKey { case meta = "_meta" }
 }
 
-/// ターミナルを解放せずにコマンドをキルするリクエスト。
+/// Kills a terminal's command but keeps the terminal, so its output can still be read.
 public struct KillTerminalRequest: ACPSchemaType {
     public var sessionId: SessionId
     public var terminalId: TerminalId
@@ -189,14 +190,14 @@ public struct KillTerminalRequest: ACPSchemaType {
     }
 }
 
-/// `terminal/kill` へのレスポンス。
+/// The reply to a kill, carrying nothing but `_meta`.
 public struct KillTerminalResponse: ACPSchemaType {
     public var meta: Meta?
     public init(meta: Meta? = nil) { self.meta = meta }
     private enum CodingKeys: String, CodingKey { case meta = "_meta" }
 }
 
-/// ターミナルのコマンドが終了するまで待機するリクエスト。
+/// Waits for a terminal's command to exit. Blocks for as long as the command runs.
 public struct WaitForTerminalExitRequest: ACPSchemaType {
     public var sessionId: SessionId
     public var terminalId: TerminalId
@@ -214,7 +215,8 @@ public struct WaitForTerminalExitRequest: ACPSchemaType {
     }
 }
 
-/// `terminal/wait_for_exit` へのレスポンス。終了ステータスフィールドがワイヤースキーマでこのオブジェクトにフラット化される。
+/// How the command ended. The exit-status fields are flattened into this object on the wire rather
+/// than nested.
 public struct WaitForTerminalExitResponse: ACPSchemaType {
     public var exitCode: UInt32?
     public var signal: String?

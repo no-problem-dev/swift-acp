@@ -1,16 +1,29 @@
 import Foundation
 
-/// ACP ワイヤースキーマ（`schema/v1/schema.json` の `$defs`）の名前付き定義に対応する値型。
+/// A value type that models one named definition from the pinned ACP wire schema — an entry under
+/// `$defs` in `Tests/ACPConformanceTests/Spec/v1/schema.json`.
 ///
-/// コンフォーマンステストスイートが確認するコントラクト：ピン留めされたスキーマの各 `$defs` エントリは
-/// ちょうど 1 つの Swift 型に対応し、すべてのモデル型が JSON をロスレスにラウンドトリップする必要がある。
-/// `schemaName` はデフォルトで Swift の型名を返すため、Swift の命名がスキーマと意図的に異なる場合
-/// （例: `Swift.Error` の隠蔽を避けるため）にのみオーバーライドする。
+/// Conformance rests on this protocol: the test suite reads the pinned schema, collects every
+/// modelled type, and requires the two sets to match exactly — no unmodelled definition, and no
+/// modelled type claiming a name the schema does not define. It then decodes and re-encodes the
+/// vendored wire samples through these types and compares the JSON.
+///
+/// Adopting the protocol is what enrols a type in that check. A type left out of
+/// `ACPCoreSchema.types` or `ACPJSONRPCSchema.types` is invisible to it, so the registries are the
+/// thing to update when a definition is added.
 public protocol ACPSchemaType: Codable, Equatable, Sendable {
+    /// The schema definition this type models. Defaults to the Swift type name; override only when
+    /// the Swift name deliberately differs, as `RPCError` does to avoid shadowing `Swift.Error`.
     static var schemaName: String { get }
 
-    /// `data` を `Self` としてデコードして再エンコードする。型消去された `any ACPSchemaType.Type` 上で呼び出し可能。
-    /// コンフォーマンステストスイートがこれを使ってモデル型ごとにワイヤーサンプルのロスレスラウンドトリップを検証する。
+    /// Decodes `data` as `Self` and re-encodes it, so a round trip can be driven through an
+    /// existential `any ACPSchemaType.Type` without knowing the concrete type.
+    ///
+    /// - Parameters:
+    ///   - data: The wire sample to read.
+    ///   - encoder: The encoder to write it back with.
+    /// - Returns: The re-encoded bytes. Key order will differ from the input; the conformance suite
+    ///   compares parsed JSON rather than bytes.
     static func roundTripJSON(_ data: Data, using encoder: JSONEncoder) throws -> Data
 }
 

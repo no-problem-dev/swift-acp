@@ -1,6 +1,8 @@
-/// クライアントがサポートするファイルシステムケーパビリティ。
+/// Which file-system methods the client offers.
 ///
-/// ブールフラグはワイヤー上で常に存在する（デフォルト `false`）。
+/// The flags are always present on the wire, defaulting to `false`. Nothing checks that a client
+/// advertising a capability actually implements it — an agent that trusts this and calls an
+/// unimplemented method gets an error at call time.
 public struct FileSystemCapabilities: ACPSchemaType {
     public var readTextFile: Bool
     public var writeTextFile: Bool
@@ -18,7 +20,7 @@ public struct FileSystemCapabilities: ACPSchemaType {
     }
 }
 
-/// 初期化時にクライアントが通知するケーパビリティ。
+/// What the client lends the agent, sent once during initialization and fixed for the connection.
 public struct ClientCapabilities: ACPSchemaType {
     public var fs: FileSystemCapabilities
     public var terminal: Bool

@@ -1,24 +1,34 @@
 import Foundation
 import ACPCore
 
-/// JSON-RPC メッセージフレームの双方向トランスポートプロトコル。
+/// Moves encoded frames between two peers — the serialization boundary, and the only place bytes
+/// exist.
 ///
-/// stdio アダプタ（および任意のネットワークアダプタ）が使用する直列化境界。
-/// インプロセスパスは意図的にこれを経由しない——そこでは ACP 型が符号化なしに Swift 値として受け渡される（`InProcessConnection` 参照）。
+/// The in-process path deliberately does not go through this: there, ACP types are passed as Swift
+/// values with nothing encoded at all. Implement this to carry ACP over something other than
+/// stdio; framing is the implementation's business, and the value handed to `send` must arrive at
+/// the peer's `messages()` as exactly one element.
 public protocol ACPMessageTransport: Sendable {
-    /// 符号化済みの JSON-RPC メッセージフレームを 1 件送信する。
+    /// Sends one encoded frame.
     func send(_ frame: Data) async throws
 
-    /// 受信する JSON-RPC メッセージフレームのストリーム（1 要素 = 1 フレーム）。
+    /// The frames arriving from the peer, one element per frame, in the order they arrive.
+    ///
+    /// The stream finishes when the peer closes, and throws if the underlying channel fails. Only
+    /// one consumer is expected.
     func messages() -> AsyncThrowingStream<Data, any Error>
 }
 
-/// トランスポート層が送出するエラー。
+/// What the transport layer reports when a call cannot be completed.
 public enum ACPTransportError: Error, Equatable, Sendable {
-    /// 対向が実装していないメソッドを送信してきた。
+    /// The peer asked for a method this side does not implement.
     case methodNotSupported(String)
-    /// 保留中でないリクエスト ID に対するレスポンスが到着した。
+    /// A response arrived for an id nothing was waiting on.
+    ///
+    /// - Note: Not thrown by anything shipped here. `AgentConnection` drops such a response
+    ///   silently instead.
     case unexpectedResponse(RequestId)
-    /// 保留中のリクエストが完了する前にトランスポートがクローズされた。
+    /// The transport closed while requests were still outstanding. Every pending call fails with
+    /// this.
     case closed
 }

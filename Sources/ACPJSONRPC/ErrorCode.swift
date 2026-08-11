@@ -1,24 +1,24 @@
-/// JSON-RPC / ACP の定義済みエラーコード。
+/// The error codes JSON-RPC and ACP define, plus a catch-all for everything else.
 ///
-/// JSON-RPC 標準コードに加え、ACP 固有コードを予約済み範囲に定義する。
-/// 既知セット外のコードは `other` に収容する。
-/// ワイヤー形式は裸の整数（`-32700` 等）なので、符号化・復号は `code` プロパティを経由する。
+/// On the wire this is a bare integer, so an unrecognized code decodes to `other` rather than
+/// failing — which is what lets a peer introduce a code without breaking this one. Round-trips are
+/// lossless in both directions.
 public enum ErrorCode: ACPSchemaType, Hashable {
-    /// JSON のパースに失敗。（`-32700`）
+    /// The JSON could not be parsed (`-32700`).
     case parseError
-    /// 有効な Request オブジェクトでない JSON を受信した。（`-32600`）
+    /// The JSON parsed but is not a valid request object (`-32600`).
     case invalidRequest
-    /// メソッドが存在しないか利用不可。（`-32601`）
+    /// The method does not exist, or is not available to this caller (`-32601`).
     case methodNotFound
-    /// 不正なメソッドパラメータ。（`-32602`）
+    /// The parameters do not fit the method (`-32602`).
     case invalidParams
-    /// JSON-RPC 内部エラー。（`-32603`）
+    /// The peer failed for a reason of its own (`-32603`).
     case internalError
-    /// 操作前に認証が必要。（`-32000`）
+    /// The caller must authenticate before this operation is allowed (`-32000`). ACP-specific.
     case authRequired
-    /// ファイルなど指定リソースが見つからない。（`-32002`）
+    /// The named resource — a file, typically — does not exist (`-32002`). ACP-specific.
     case resourceNotFound
-    /// 定義済みセット外の任意のエラーコード。
+    /// Any other code, kept verbatim.
     case other(Int32)
 
     public init(code: Int32) {

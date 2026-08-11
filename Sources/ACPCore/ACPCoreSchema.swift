@@ -1,7 +1,9 @@
-/// ACP ドメイン層が所有するスキーマ定義の一覧。
+/// The ACP domain definitions this module owns, as opposed to the JSON-RPC ones in
 ///
-/// `$defs` のモデル化に合わせて逐次追加される。コンフォーマンステストスイートがこのセットを
-/// ピン留めされたスキーマの全ドメイン定義をカバーするように検証する。
+/// `ACPJSONRPCSchema`.
+///
+/// The conformance suite unions the two and requires the result to equal the pinned schema's
+/// `$defs` exactly. A type not listed here is not checked, whatever its conformances.
 public enum ACPCoreSchema {
     public static let types: [any ACPSchemaType.Type] = [
         // Ids

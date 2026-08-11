@@ -1,4 +1,4 @@
-/// MCP サーバーへのリクエスト時に設定する HTTP ヘッダー。
+/// One header to send to an MCP server.
 public struct HttpHeader: ACPSchemaType {
     public var name: String
     public var value: String
@@ -16,7 +16,7 @@ public struct HttpHeader: ACPSchemaType {
     }
 }
 
-/// MCP の HTTP トランスポート設定。
+/// An MCP server reached over HTTP.
 public struct McpServerHttp: ACPSchemaType {
     public var name: String
     public var url: String
@@ -36,7 +36,7 @@ public struct McpServerHttp: ACPSchemaType {
     }
 }
 
-/// MCP の SSE トランスポート設定。
+/// An MCP server reached over Server-Sent Events.
 public struct McpServerSse: ACPSchemaType {
     public var name: String
     public var url: String
@@ -56,7 +56,7 @@ public struct McpServerSse: ACPSchemaType {
     }
 }
 
-/// MCP の stdio トランスポート設定。すべてのエージェントがこのトランスポートをサポートしなければならない。
+/// An MCP server run as a subprocess and reached over stdio. Every agent must support this one.
 public struct McpServerStdio: ACPSchemaType {
     public var name: String
     public var command: String
@@ -78,10 +78,11 @@ public struct McpServerStdio: ACPSchemaType {
     }
 }
 
-/// MCP（Model Context Protocol）サーバーへの接続設定。
+/// How to reach an MCP server.
 ///
-/// `type` フィールドで判別される。`http`・`sse` はタグを持ち、ベースラインの
-/// `stdio` トランスポートはタグなし（デフォルト）。未知の `type` は `.unknown` として保持する。
+/// Tagged by a `type` member — except for the stdio form, which carries no tag because it is the
+/// baseline every agent supports. An unrecognized type decodes to `.unknown` holding the original
+/// JSON, so it survives a round trip.
 public enum McpServer: ACPSchemaType {
     case http(McpServerHttp)
     case sse(McpServerSse)

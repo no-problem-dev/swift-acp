@@ -1,4 +1,4 @@
-/// セッションのコスト情報。
+/// What a session has cost so far, in whatever currency the agent reports.
 public struct Cost: ACPSchemaType {
     public var amount: Double
     public var currency: String
@@ -9,7 +9,7 @@ public struct Cost: ACPSchemaType {
     }
 }
 
-/// セッションのコンテキストウィンドウとコストの更新。
+/// How much of the context window is used and what the session has cost.
 public struct UsageUpdate: ACPSchemaType {
     public var used: UInt64
     public var size: UInt64
@@ -29,7 +29,7 @@ public struct UsageUpdate: ACPSchemaType {
     }
 }
 
-/// セッションの現在モードが変化したことを示す更新。
+/// Announces that the active mode changed — including when the agent changed it itself.
 public struct CurrentModeUpdate: ACPSchemaType {
     public var currentModeId: SessionModeId
     public var meta: Meta?
@@ -45,7 +45,7 @@ public struct CurrentModeUpdate: ACPSchemaType {
     }
 }
 
-/// セッション設定オプションが更新されたことを示す更新。
+/// Announces the configuration options as they now stand.
 public struct ConfigOptionUpdate: ACPSchemaType {
     public var configOptions: [SessionConfigOption]
     public var meta: Meta?
@@ -61,7 +61,11 @@ public struct ConfigOptionUpdate: ACPSchemaType {
     }
 }
 
-/// セッションメタデータの更新。`title`/`updatedAt` は 3 状態：省略で変更なし・`null` でクリア・値で設定。
+/// Revises a session's metadata.
+///
+/// `title` and `updatedAt` are three-state: absent leaves the field alone, `null` clears it, and a
+/// value sets it. Encoding omits the key entirely for the absent case, which is what keeps "leave
+/// alone" distinct from "clear".
 public struct SessionInfoUpdate: ACPSchemaType {
     public var title: MaybeUndefined<String>
     public var updatedAt: MaybeUndefined<String>
@@ -101,9 +105,12 @@ public struct SessionInfoUpdate: ACPSchemaType {
     }
 }
 
-/// プロンプト処理中にストリームで配信されるリアルタイム更新。
+/// One thing that happened during a turn: a message chunk, a thought, a plan, a tool call, or a
+/// change to the session itself.
 ///
-/// `sessionUpdate` フィールドで内部タグ付けされる。未知のタグは `.unknown` として保持する。
+/// Tagged by a `sessionUpdate` member. An unrecognized tag decodes to `.unknown` holding the
+/// original JSON, so a host on an older revision can still render what it understands and pass the
+/// rest through untouched.
 public enum SessionUpdate: ACPSchemaType {
     case userMessageChunk(ContentChunk)
     case agentMessageChunk(ContentChunk)
@@ -162,7 +169,7 @@ public enum SessionUpdate: ACPSchemaType {
     }
 }
 
-/// エージェントからのセッション更新を運ぶ通知。
+/// The envelope one update travels in: the session it concerns, and the update itself.
 public struct SessionNotification: ACPSchemaType {
     public var sessionId: SessionId
     public var update: SessionUpdate

@@ -1,55 +1,71 @@
 # ``ACPJSONRPC``
 
-JSON-RPC 2.0 エンベロープ型と、`swift-acp` パッケージ全体のドメイン型を支える `ACPSchemaType` 準拠コントラクト。
+The JSON-RPC 2.0 envelope, and the protocol that binds every ACP type to the pinned wire schema.
 
 ## Overview
 
-`ACPJSONRPC` は `swift-acp` 依存グラフの最底層。他のすべてのモジュールが直接または推移的にこれに依存し、`ACPCore` が再エクスポートするため、大半のユーザーは `import ACPCore` 1 文で JSON-RPC プリミティブをスコープに取り込める。
+This is the bottom of the dependency graph, and it knows nothing about ACP. `ACPCore`
+re-exports it, so `import ACPCore` is normally enough — import this module directly only when you
+want the envelope without the domain types.
 
-このモジュールは 3 種類の型を提供する。第 1 に、汎用 JSON-RPC 2.0 エンベロープ構造体 `JSONRPCRequest`・`JSONRPCNotification`・`JSONRPCResponse` は、任意のトランスポートで型付きペイロードを運ぶ。`JSONRPCVersion` は各エンベロープでプロトコルリビジョンを識別する。
+Three things live here.
 
-第 2 に、`JSONValue` は任意の JSON ノード（null・bool・number・string・array・object）をモデル化する再帰的 sum 型。拡張ペイロードや `_meta` ディクショナリなど、ACP スキーマがオープンエンドな JSON を許容する箇所で使用する。
+**The envelope.** ``JSONRPCRequest``, ``JSONRPCNotification`` and ``JSONRPCResponse`` are generic
+over their payload, so a typed value travels without the envelope knowing what it is.
+``JSONRPCVersion`` models the one legal value of the `jsonrpc` field, which means a message
+declaring any other version fails to decode rather than being processed as 2.0.
 
-第 3 に、`ACPSchemaType` は ACP ワイヤースキーマの各名前付き定義がちょうど 1 つの Swift 型に対応することを保証するプロトコル。準拠型はデフォルトの `schemaName` と、コンフォーマンステストスイートがロスレス符号化を検証するための `roundTripJSON(_:using:)` ヘルパーを得る。
+**``JSONValue``.** A recursive enum covering every JSON node, for the places ACP leaves the shape
+open: `_meta`, extension methods, and MCP tool input and output. It is a concrete type rather than
+`Any`, which is what keeps `Codable`, `Equatable` and `Sendable` intact all the way down. Numbers
+are `Double`, so an integer beyond 2^53 does not survive a round trip exactly.
+
+**``ACPSchemaType``.** The protocol that enrols a type in the conformance check. The suite reads
+the pinned schema, collects every type listed in ``ACPJSONRPCSchema`` and `ACPCoreSchema`, and
+requires the two sets to match exactly — then decodes and re-encodes the vendored wire samples
+through them. Adopting the protocol is not enough on its own: a type absent from those registries
+is invisible to the check.
 
 ```swift
 import ACPJSONRPC
 
-// JSONValue は任意の JSON をロスなく表現する。
 let value: JSONValue = .object(["version": .number(1), "tag": .string("stable")])
 
-// すべてのスキーマ型は JSON をラウンドトリップする。
+// Every schema type round-trips.
 let data = try JSONEncoder().encode(RequestId.number(42))
 let copy = try JSONDecoder().decode(RequestId.self, from: data)
 assert(copy == .number(42))
 ```
 
+### Where the model is looser than the wire
+
+``RequestId`` models `null` because JSON-RPC permits it, but the frame classifier in
+`ACPTransport` cannot tell a null id from an absent one. A request with a null id is read as a
+notification and answered by nothing; a response with one is rejected as malformed.
+
+``ErrorCode`` keeps an unrecognized code verbatim in `other`, so a peer can introduce a code
+without breaking this one.
+
 ## Topics
 
-### スキーマ契約
+### Schema Contract
 
 - ``ACPSchemaType``
+- ``ACPJSONRPCSchema``
 
-### JSON プリミティブ
+### JSON
 
 - ``JSONValue``
 
-### リクエスト識別子
-
-- ``RequestId``
-
-### エンベロープ
+### Envelope
 
 - ``JSONRPCRequest``
 - ``JSONRPCNotification``
 - ``JSONRPCResponse``
 - ``JSONRPCVersion``
+- ``RequestId``
 
-### エラー
+### Errors
 
 - ``RPCError``
 - ``ErrorCode``
-
-### スキーマレジストリ
-
-- ``ACPJSONRPCSchema``

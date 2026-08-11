@@ -1,42 +1,26 @@
-[English](./README.md) | 日本語
-
 # swift-acp
 
-[Agent Client Protocol](https://agentclientprotocol.com) (ACP)——エディタ・ホストとエージェントを接続する JSON-RPC 標準——のテスト駆動・完全準拠 Swift 実装。
+[English](./README.md) | 日本語
 
-適合対象: スキーマクレート **0.13.6 / protocol v1**（最新安定版）。すべての型はピン留めされた公式ワイヤースキーマ・リファレンスクレートの直列化ベクタ・メソッドレジストリに対して検証済み——仮定ではなく証明済み。
+[Agent Client Protocol](https://agentclientprotocol.com) の Swift 実装。エディタ・ホストとエージェントを繋ぐ JSON-RPC の標準。
 
-## なぜ ACP か
+![Swift 6.0+](https://img.shields.io/badge/Swift-6.0+-orange.svg)
+![ACP v1](https://img.shields.io/badge/ACP-schema%200.13.6%20%2F%20v1-green.svg)
+![Platforms](https://img.shields.io/badge/Platforms-iOS%2016+%20%7C%20macOS%2013+%20%7C%20tvOS%2016+%20%7C%20watchOS%209+%20%7C%20visionOS%201+-blue.svg)
+![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-ACP のコア（`session/prompt` → ストリーミング `session/update`（プラン・思考・ツール呼び出し・パーミッションリクエスト）→ `session/cancel`）は、**ホストが単一エージェントの作業セッションを観察・操作するためのドメイン非依存なコントラクト**。ファイルシステム・ターミナルケーパビリティはオプションのクライアント側拡張なので、コーディング用途のエージェントだけでなく非コーディングエージェントの進捗・制御プレーンとしても同様に利用できる。トランスポートは交換可能な境界：インプロセスではメッセージが直列化なしに Swift 値として受け渡され、stdio 経由では JSON-RPC になる。
+## 特徴
 
-## ターゲット
+- **仕様に対して証明する。仮定しない** — ワイヤースキーマとメソッドレジストリをバージョン固定で同梱し、135 個の `$defs` が全てモデル化されていること・メソッド表がレジストリと完全一致すること・リファレンス実装のワイヤーサンプルがラウンドトリップすることをテストで要求している
+- **トランスポートは 2 つ、エージェントは 1 つ** — ロールコントラクトに対して一度書けば、同一プロセスで直列化なしにも、stdio 経由の JSON-RPC でも動く
+- **前方互換が構造で担保される** — オープンな文字列列挙と `unknown` ケースにより、新しいリビジョンの相手が来てもデコードは壊れず、未知の値はそのまま再エンコードされる
+- **コーディングエージェント専用ではない** — コアは「プロンプト → 更新をストリーム → キャンセル」。ファイルシステムとターミナルはホストが貸し出す任意のケーパビリティ
+- **層をターゲットで分離** — ワイヤー型だけ、ロールコントラクトだけ、トランスポートまで、必要な分だけ取れる。アンブレラなし
+- **標準ライブラリ以外の依存なし**
 
-| ターゲット | 役割 |
-|---|---|
-| `ACPJSONRPC` | JSON-RPC 2.0 エンベロープ（`RequestId`・`RPCError`・`ErrorCode`・`JSONValue`）、ACP から分離 |
-| `ACPCore` | ACP v1 の 135 `$defs` を `Codable` 値型として実装——sum 型ユニオン・オープン文字列列挙・前方互換のための `unknown` ケース |
-| `ACPAgent` | エージェントロールコントラクト（`protocol ACPAgent`） |
-| `ACPClient` | クライアント/ホストロールコントラクト（`protocol ACPClient`） |
-| `ACPTransport` | `InProcessConnection`（型付き・直列化なし）＋ `StdioTransport`/`AgentConnection`（JSON-RPC）＋ `StreamingSessionClient` |
+## クイックスタート
 
-## インストール
-
-```swift
-// Package.swift
-dependencies: [
-    .package(url: "https://github.com/no-problem-dev/swift-acp.git", from: "0.1.0")
-]
-```
-
-```swift
-.target(name: "YourTarget", dependencies: [
-    .product(name: "ACPTransport", package: "swift-acp"),   // トランスポート + ロールコントラクト + 型
-    // .product(name: "ACPCore", package: "swift-acp"),     // ドメイン型のみ
-])
-```
-
-## インプロセス（直列化なし）
+同一プロセス、直列化なし：
 
 ```swift
 import ACPTransport
@@ -55,24 +39,50 @@ let response = try await connection.agent.prompt(promptRequest)
 connection.finish()
 ```
 
-## stdio 経由（相互運用）
+stdio 経由で、任意の ACP クライアントと相互運用：
 
 ```swift
 let connection = AgentConnection(transport: StdioTransport())
 await connection.start { client in MyAgent(client: client) }
-try await connection.run()   // stdin/stdout 経由で任意の ACP クライアントにエージェントを提供する
+try await connection.run()
 ```
 
-## 準拠
+## ドキュメント
 
-`ACPConformanceTests` スイートは `Tests/ACPConformanceTests/Spec/v1` にバージョン固定された仕様に対して 3 つの独立した保証を施行する：
+ライブラリごとに DocC ページがある：
 
-- **スキーマカバレッジ** — 135 個の `$defs` それぞれがちょうど 1 つのモデル型に対応する。
-- **ゴールデンラウンドトリップ** — リファレンスクレートの `#[test]` アサーションから採取した 30 個のワイヤーサンプルがロスレスにデコード・再エンコードされる（フィールドレベルの準拠）。
-- **メソッドパリティ** — Swift のメソッド名テーブルが `meta.json` と完全に一致する。
+- [ACPCore](https://no-problem-dev.github.io/swift-acp/documentation/acpcore/) — ドメイン型。層構成とコンフォーマンス検査の中身は [Architecture](https://no-problem-dev.github.io/swift-acp/documentation/acpcore/architecture)
+- [ACPJSONRPC](https://no-problem-dev.github.io/swift-acp/documentation/acpjsonrpc/) — エンベロープ
+- [ACPAgent](https://no-problem-dev.github.io/swift-acp/documentation/acpagent/) · [ACPClient](https://no-problem-dev.github.io/swift-acp/documentation/acpclient/) — 2 つのロールコントラクト
+- [ACPTransport](https://no-problem-dev.github.io/swift-acp/documentation/acptransport/) — 両者の接続
 
+## インストール
+
+`Package.swift` に追加する：
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/no-problem-dev/swift-acp.git", from: "0.1.0")
+]
 ```
-swift test
+
+必要な product をターゲットに足す：
+
+```swift
+.target(name: "YourTarget", dependencies: [
+    .product(name: "ACPTransport", package: "swift-acp"),   // トランスポート＋ロールコントラクト＋型
+    // .product(name: "ACPCore", package: "swift-acp"),     // ドメイン型のみ
+])
 ```
 
-Apache-2.0（リファレンスプロトコルに準拠）。
+## 動作環境
+
+| swift-acp | Swift | プラットフォーム | ACP |
+|---|---|---|---|
+| 0.x | 6.0+ | iOS 16+ · macOS 13+ · tvOS 16+ · watchOS 9+ · visionOS 1+ | schema 0.13.6 / protocol v1 |
+
+コンフォーマンステストは `swift test` で回る。
+
+## ライセンス
+
+MIT。[LICENSE](LICENSE) を参照。

@@ -2,16 +2,16 @@ import ACPCore
 import ACPAgent
 import ACPClient
 
-/// エージェントとホストを同一プロセス内で、直列化なしに接続するチャネル。
+/// Runs an agent and its host in one process, with nothing serialized.
 ///
-/// ホストは `ACPAgent` プロトコルを直接使ってエージェントを駆動し、
-/// エージェントは `client.sessionUpdate(_:)` を呼び出して進捗を報告し、
-/// ホストはその更新を `AsyncStream` として消費する。JSON-RPC ワイヤーは関与せず、
-/// 型付き Swift 値がそのまま受け渡される。
+/// The host drives the agent through the `ACPAgent` protocol directly and reads its progress from
+/// an `AsyncStream`; no JSON-RPC frame is ever built. Because the messages never round-trip through
+/// JSON, this path does not exercise the wire format — a payload that would fail to encode passes
+/// unnoticed here. Moving to a real agent later is a change of connection and nothing else.
 ///
 /// ```swift
 /// let connection = InProcessConnection { client in
-///     MyResearchAgent(client: client)   // エージェントは client を通じて進捗を報告する
+///     MyResearchAgent(client: client)   // the agent reports progress through `client`
 /// }
 /// Task {
 ///     for await update in connection.updates { render(update) }
@@ -20,18 +20,22 @@ import ACPClient
 /// connection.finish()
 /// ```
 public struct InProcessConnection: Sendable {
-    /// `ACPAgent` コントラクトを通じて直接駆動されるエージェント。
+    /// The agent, called directly through its protocol.
     public let agent: any ACPAgent
 
-    /// エージェントに渡される観察クライアント。
+    /// The client the agent was handed, which is what turns its reports into the update stream.
     public let client: StreamingSessionClient
 
-    /// エージェントのセッション更新ストリーム（進捗チャネル）。
+    /// The agent's updates, in the order it published them. Buffers without bound; finishes only
+    /// when `finish()` is called.
     public var updates: AsyncStream<SessionNotification> { client.updates }
 
+    /// Builds the connection and the agent together.
+    ///
     /// - Parameters:
-    ///   - onPermission: ホスト側のパーミッションリクエストへの応答方法。
-    ///   - makeAgent: エージェントを構築するクロージャ。報告先のクライアントを受け取る。
+    ///   - onPermission: How the host answers a permission request. Refuses every request by
+    ///     default, which surfaces to the agent as a thrown error rather than a denial.
+    ///   - makeAgent: Builds the agent, receiving the client it should report to.
     public init(
         onPermission: @escaping @Sendable (RequestPermissionRequest) async throws -> RequestPermissionResponse = { _ in
             throw ACPTransportError.methodNotSupported(ACPMethod.Client.sessionRequestPermission)
@@ -43,7 +47,8 @@ public struct InProcessConnection: Sendable {
         agent = makeAgent(client)
     }
 
-    /// 会話終了後に更新ストリームをクローズする。
+    /// Closes the update stream once the conversation is over, ending the host's loop. The agent
+    /// is not stopped by this.
     public func finish() {
         client.finish()
     }

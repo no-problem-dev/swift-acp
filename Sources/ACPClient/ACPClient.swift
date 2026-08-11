@@ -1,46 +1,55 @@
 import ACPCore
 
-/// Agent Client Protocol のクライアント側コントラクト。クライアント（ホスト：エディタ・iOS アプリ・進捗 UI 等）が
-/// エージェントに提供するケーパビリティと `session/update` 通知の受信を定義する。
+/// What a host implements: the channel an agent reports progress on, plus the capabilities the host
+/// lends the agent.
 ///
-/// v1 ワイヤー型に対するトランスポート非依存・UI 非依存の振る舞いコントラクト。
-/// 安定した v1 メソッドのみを含む。クライアントはファイルシステム・ターミナルメソッドのどれをサポートするかを
-/// `ClientCapabilities` で通知する。
+/// Only `sessionUpdate(_:)` is required in practice. The file-system and terminal methods are
+/// optional bolt-ons the host advertises in the `ClientCapabilities` it sends at initialization;
+/// declining them is the norm for a host that only observes, and the ones it does not offer should
+/// throw. Nothing here checks that what a host advertises matches what it implements.
+///
+/// A conforming type must be safe to call concurrently: an agent may ask for a permission decision
+/// while updates are still streaming.
 public protocol ACPClient: Sendable {
-    /// ツール呼び出しのユーザー承認を求め、結果を返す。
+    /// Asks the user to approve a tool call and returns what they chose.
+    ///
+    /// The agent blocks on this, so a host that shows a dialog holds the turn open until it is
+    /// answered. Cancelling the turn is the way out of an unanswered prompt.
     func requestPermission(
         _ request: RequestPermissionRequest
     ) async throws -> RequestPermissionResponse
 
-    /// クライアントのファイルシステムにテキストファイルを書き込む。
+    /// Writes a text file on the host's file system.
     func writeTextFile(_ request: WriteTextFileRequest) async throws -> WriteTextFileResponse
 
-    /// クライアントのファイルシステムからテキストファイルを読み取る。
+    /// Reads a text file from the host's file system.
     func readTextFile(_ request: ReadTextFileRequest) async throws -> ReadTextFileResponse
 
-    /// ターミナルを作成してコマンドを実行する。
+    /// Starts a command in a new terminal and returns its identifier.
     func createTerminal(_ request: CreateTerminalRequest) async throws -> CreateTerminalResponse
 
-    /// ターミナルの現在の出力と終了ステータスを取得する。
+    /// Returns what a terminal has produced so far, and its exit status if it has finished.
     func terminalOutput(_ request: TerminalOutputRequest) async throws -> TerminalOutputResponse
 
-    /// ターミナルを解放してリソースを開放する。
+    /// Releases a terminal and frees its resources. The identifier is invalid afterwards.
     func releaseTerminal(_ request: ReleaseTerminalRequest) async throws -> ReleaseTerminalResponse
 
-    /// ターミナルのコマンドが終了するまで待機する。
+    /// Waits for a terminal's command to exit.
     func waitForTerminalExit(
         _ request: WaitForTerminalExitRequest
     ) async throws -> WaitForTerminalExitResponse
 
-    /// ターミナルを解放せずにコマンドをキルする。
+    /// Kills a terminal's command without releasing the terminal, so its output stays readable.
     func killTerminal(_ request: KillTerminalRequest) async throws -> KillTerminalResponse
 
-    /// エージェントからのストリーミングセッション更新を受信する（通知のみ・応答なし）。ホストが描画する進捗チャネル。
+    /// Receives one streamed update from the agent — the progress channel a host renders.
+    ///
+    /// A notification: it has no reply, so throwing reaches nobody and does not stop the stream.
     func sessionUpdate(_ notification: SessionNotification) async throws
 
-    /// 仕様外の拡張リクエストを処理する。
+    /// Handles a method the specification does not define.
     func ext(_ request: ExtRequest) async throws -> ExtResponse
 
-    /// 仕様外の拡張通知を処理する。
+    /// Handles a notification the specification does not define. Has no reply.
     func extNotification(_ notification: ExtNotification) async throws
 }

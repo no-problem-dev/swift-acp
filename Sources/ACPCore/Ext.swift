@@ -1,7 +1,9 @@
-/// ACP 仕様外の任意のリクエスト。
+/// A request for a method the specification does not define.
 ///
-/// `method` は JSON-RPC エンベロープ経由でアウトオブバンドに運ばれ（ルーティング用・非シリアル化）、
-/// ワイヤー上には `params` のみが存在する。したがってこの型は `params` 値として透過的に符号化される。
+/// - Important: `method` is *not* part of this type's JSON. It travels in the JSON-RPC envelope,
+///   and the value encodes as its `params` alone. Decoding therefore leaves `method` empty, and
+///   equality ignores it — two extensions with the same params compare equal whatever they are
+///   named.
 public struct ExtRequest: ACPSchemaType {
     public var method: String
     public var params: JSONValue
@@ -25,9 +27,9 @@ public struct ExtRequest: ACPSchemaType {
     }
 }
 
-/// ACP 仕様外の任意のリクエスト（`ExtRequest`）へのレスポンス。
+/// The reply to an extension request.
 ///
-/// `params` 値として透過的に符号化される。
+/// Encodes as its `params` alone, with no wrapper.
 public struct ExtResponse: ACPSchemaType {
     public var params: JSONValue
 
@@ -42,10 +44,12 @@ public struct ExtResponse: ACPSchemaType {
     }
 }
 
-/// ACP 仕様外の任意の一方向通知。
+/// A notification for a method the specification does not define. Has no reply.
 ///
-/// `method` は JSON-RPC エンベロープ経由でアウトオブバンドに運ばれ（ルーティング用・非シリアル化）、
-/// ワイヤー上には `params` のみが存在する。したがってこの型は `params` 値として透過的に符号化される。
+/// - Important: `method` is *not* part of this type's JSON. It travels in the JSON-RPC envelope,
+///   and the value encodes as its `params` alone. Decoding therefore leaves `method` empty, and
+///   equality ignores it — two extensions with the same params compare equal whatever they are
+///   named.
 public struct ExtNotification: ACPSchemaType {
     public var method: String
     public var params: JSONValue
@@ -69,7 +73,8 @@ public struct ExtNotification: ACPSchemaType {
     }
 }
 
-/// セッションの進行中操作をキャンセルする通知。
+/// Asks the agent to stop the turn in progress. Has no reply — the turn's own response reports the
+/// outcome, with a stop reason of cancelled.
 public struct CancelNotification: ACPSchemaType {
     public var sessionId: SessionId
     public var meta: Meta?

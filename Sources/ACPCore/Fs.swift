@@ -1,4 +1,5 @@
-/// クライアントのファイルシステム上のテキストファイルに内容を書き込むリクエスト。
+/// Asks the client to write a text file. Paths are the client's to interpret, and nothing here
+/// constrains where a write may land.
 public struct WriteTextFileRequest: ACPSchemaType {
     public var sessionId: SessionId
     public var path: String
@@ -18,7 +19,7 @@ public struct WriteTextFileRequest: ACPSchemaType {
     }
 }
 
-/// `fs/write_text_file` へのレスポンス。
+/// The reply to a write, carrying nothing but `_meta`.
 public struct WriteTextFileResponse: ACPSchemaType {
     public var meta: Meta?
 
@@ -31,7 +32,7 @@ public struct WriteTextFileResponse: ACPSchemaType {
     }
 }
 
-/// クライアントのファイルシステム上のテキストファイルから内容を読み取るリクエスト。
+/// Asks the client to read a text file, optionally only a range of lines.
 public struct ReadTextFileRequest: ACPSchemaType {
     public var sessionId: SessionId
     public var path: String
@@ -59,7 +60,7 @@ public struct ReadTextFileRequest: ACPSchemaType {
     }
 }
 
-/// `fs/read_text_file` へのレスポンス。
+/// The file's contents.
 public struct ReadTextFileResponse: ACPSchemaType {
     public var content: String
     public var meta: Meta?

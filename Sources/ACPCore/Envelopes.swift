@@ -5,7 +5,7 @@
 // Untagged decoding tries each variant in declaration order (the extension
 // variant, which accepts any JSON, is always last).
 
-/// エージェントからクライアントへのリクエスト（agent → client）。
+/// Any request an agent may send its client, as one typed value.
 public enum AgentRequest: ACPSchemaType {
     case writeTextFile(WriteTextFileRequest)
     case readTextFile(ReadTextFileRequest)
@@ -58,7 +58,7 @@ public enum AgentRequest: ACPSchemaType {
     }
 }
 
-/// クライアントからエージェントへのレスポンス（`AgentRequest` への応答）。
+/// Any reply a client may send back to an `AgentRequest`.
 public enum ClientResponse: ACPSchemaType {
     case writeTextFile(WriteTextFileResponse)
     case readTextFile(ReadTextFileResponse)
@@ -97,7 +97,7 @@ public enum ClientResponse: ACPSchemaType {
     }
 }
 
-/// エージェントからクライアントへの通知（agent → client）。
+/// Any notification an agent may send its client.
 public enum AgentNotification: ACPSchemaType {
     case sessionUpdate(SessionNotification)
     case ext(ExtNotification)
@@ -122,7 +122,7 @@ public enum AgentNotification: ACPSchemaType {
     }
 }
 
-/// クライアントからエージェントへのリクエスト（client → agent）。
+/// Any request a client may send an agent, as one typed value.
 public enum ClientRequest: ACPSchemaType {
     case initialize(InitializeRequest)
     case authenticate(AuthenticateRequest)
@@ -191,7 +191,7 @@ public enum ClientRequest: ACPSchemaType {
     }
 }
 
-/// エージェントからクライアントへのレスポンス（`ClientRequest` への応答）。
+/// Any reply an agent may send back to a `ClientRequest`.
 public enum AgentResponse: ACPSchemaType {
     case initialize(InitializeResponse)
     case authenticate(AuthenticateResponse)
@@ -242,7 +242,7 @@ public enum AgentResponse: ACPSchemaType {
     }
 }
 
-/// クライアントからエージェントへの通知（client → agent）。
+/// Any notification a client may send an agent.
 public enum ClientNotification: ACPSchemaType {
     case cancel(CancelNotification)
     case ext(ExtNotification)

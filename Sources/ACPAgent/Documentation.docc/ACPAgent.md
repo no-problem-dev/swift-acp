@@ -1,14 +1,24 @@
 # ``ACPAgent``
 
-ACP 準拠エージェントが実装しなければならないプロトコル——v1 メソッドセットに対するトランスポート非依存 Swift コントラクト。
+The one protocol an ACP agent implements.
 
 ## Overview
 
-`ACPAgent` は Agent Client Protocol の**エージェント側**を定義する：クライアントがエージェントに呼び出し得るメソッドの全セット。`ACPAgent` に準拠することが `ACPTransport` に接続される唯一の要件であり、stdio・インプロセスチャネル・任意のトランスポートで動作する。
+``ACPAgent`` is the agent half of the protocol: every method a client may call. Conforming to it is
+the whole requirement for being served by `ACPTransport` — over stdio, in-process, or anything else
+that carries frames.
 
-プロトコルは 4 つの論理グループに分かれる。ハンドシェイクメソッド（`initialize`・`authenticate`・`logout`）はプロトコルバージョンを交渉しケーパビリティを交換して認証を管理する。セッションライフサイクルメソッド（`newSession`・`loadSession`・`listSessions`・`resumeSession`・`deleteSession`・`closeSession`・`setSessionMode`・`setSessionConfigOption`）はクライアントが名前付き永続会話を管理できるようにする。プロンプトメソッド（`prompt`）はエージェント推論の 1 ターンを駆動し、エージェントは `ACPClient.sessionUpdate(_:)` を通じてストリーミング進捗をクライアントにプッシュする。拡張メソッド（`ext`・`extNotification`・`cancel`）はキャンセルと仕様外追加を処理する。
+The methods fall into four groups. **Handshake** — `initialize`, `authenticate`, `logout` — agrees
+the protocol version, exchanges capabilities and manages credentials. **Session lifecycle** —
+`newSession`, `loadSession`, `listSessions`, `resumeSession`, `deleteSession`, `closeSession`,
+`setSessionMode`, `setSessionConfigOption` — lets a client manage named, persistent conversations.
+**Prompting** — `prompt` — runs one turn, during which the agent pushes progress to the client
+through `ACPClient.sessionUpdate(_:)`. **Cancellation and extensions** — `cancel`, `ext`,
+`extNotification` — cover stopping a turn and anything the specification does not define.
 
-すべてのメソッドは `async throws`。特定のケーパビリティをサポートしないエージェントは `ACPTransportError.methodNotSupported(_:)` をスローしてトランスポートに明示的に通知できる。
+There are no default implementations, so every method must be answered. Throw
+`RPCError(code: .methodNotFound, …)` for the ones you do not offer, and say so in the capabilities
+returned from `initialize` — the failure should be a refusal the client can read, not a crash.
 
 ```swift
 import ACPCore
@@ -27,25 +37,32 @@ struct EchoAgent: ACPAgent {
         PromptResponse(stopReason: .endTurn)
     }
 
-    // 残りのメソッドは省略——実際の最小スタブでは各メソッドがスローする。
-    func authenticate(_ r: AuthenticateRequest) async throws -> AuthenticateResponse { fatalError() }
-    func newSession(_ r: NewSessionRequest) async throws -> NewSessionResponse { fatalError() }
-    func loadSession(_ r: LoadSessionRequest) async throws -> LoadSessionResponse { fatalError() }
-    func listSessions(_ r: ListSessionsRequest) async throws -> ListSessionsResponse { fatalError() }
-    func resumeSession(_ r: ResumeSessionRequest) async throws -> ResumeSessionResponse { fatalError() }
-    func deleteSession(_ r: DeleteSessionRequest) async throws -> DeleteSessionResponse { fatalError() }
-    func closeSession(_ r: CloseSessionRequest) async throws -> CloseSessionResponse { fatalError() }
-    func setSessionMode(_ r: SetSessionModeRequest) async throws -> SetSessionModeResponse { fatalError() }
-    func setSessionConfigOption(_ r: SetSessionConfigOptionRequest) async throws -> SetSessionConfigOptionResponse { fatalError() }
-    func cancel(_ n: CancelNotification) async throws {}
-    func logout(_ r: LogoutRequest) async throws -> LogoutResponse { fatalError() }
-    func ext(_ r: ExtRequest) async throws -> ExtResponse { fatalError() }
-    func extNotification(_ n: ExtNotification) async throws {}
+    // Everything this agent does not offer refuses in a way the client can read.
+    func authenticate(_ r: AuthenticateRequest) async throws -> AuthenticateResponse {
+        throw RPCError(code: .methodNotFound, message: "authenticate is not supported")
+    }
+    // …and so on for the remaining methods.
 }
 ```
 
+### What a conforming type must guarantee
+
+**Safe to call concurrently.** Nothing serializes these calls. A client may send `cancel` while
+`prompt` is still running — that is the point of the method — and may issue other requests during a
+turn.
+
+**A turn ends by returning, not by throwing.** A cancelled turn returns normally with a stop reason
+of cancelled. Throwing from `prompt` reports a failure of the call itself.
+
+**Resumable after an interruption.** Stopping a turn to ask for input ends that `prompt` call; the
+client's answer arrives as a new one. Whatever the agent needs to continue must survive in the
+session, not in the call.
+
+**Unknown methods arrive at `ext`.** The stdio connection routes every unrecognized method there
+rather than answering method-not-found, so an agent that wants no extensions should throw from it.
+
 ## Topics
 
-### ロール契約
+### Role Contract
 
 - ``ACPAgent``

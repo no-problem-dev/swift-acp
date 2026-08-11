@@ -1,56 +1,72 @@
 import ACPCore
 
-/// Agent Client Protocol のエージェント側コントラクト。クライアントに駆動されるエージェントが実装するメソッドを定義する。
+/// What an agent implements: the thirteen v1 methods a client may call, plus the two extension
+/// escape hatches.
 ///
-/// v1 ワイヤー型に対するトランスポート非依存・UI 非依存の振る舞いコントラクト。
-/// 具体的なエージェント（LLM ループ・A2A オーケストレーター等）が準拠し、
-/// トランスポートがこれを JSON-RPC またはインプロセスチャネルに適合させる。
-/// 安定した v1 メソッドのみを含む。
+/// Behaviour only — no transport and no UI. A concrete agent conforms to this and a transport
+/// adapts it, either to JSON-RPC over a wire or to direct Swift calls in the same process. The
+/// protocol carries no default implementations, so every method must be answered; throw
+/// `RPCError(code: .methodNotFound, …)` for the ones an agent does not offer, and say so in the
+/// capabilities it returns from `initialize`.
+///
+/// A conforming type must be safe to call concurrently: nothing serializes these calls, and a
+/// client may issue a cancellation while a prompt is still running — which is the whole point of
+/// that method.
 public protocol ACPAgent: Sendable {
-    /// プロトコルバージョンを交渉し、ケーパビリティを交換する。
+    /// Agrees the protocol version and exchanges capabilities. The first call of any session.
     func initialize(_ request: InitializeRequest) async throws -> InitializeResponse
 
-    /// 事前に通知された認証メソッドでエージェントと認証する。
+    /// Authenticates using one of the methods advertised during initialization.
     func authenticate(_ request: AuthenticateRequest) async throws -> AuthenticateResponse
 
-    /// 新しいセッションを作成する。
+    /// Creates a session.
     func newSession(_ request: NewSessionRequest) async throws -> NewSessionResponse
 
-    /// 過去のセッションを履歴をロードして再開する。
+    /// Reopens an earlier session, replaying its history to the client as it goes.
     func loadSession(_ request: LoadSessionRequest) async throws -> LoadSessionResponse
 
-    /// エージェントが認識しているセッションの一覧を取得する。
+    /// Lists the sessions the agent knows about.
     func listSessions(_ request: ListSessionsRequest) async throws -> ListSessionsResponse
 
-    /// セッションを再開して追加のプロンプトを受け付ける。
+    /// Resumes a session so it can take further prompts.
     func resumeSession(_ request: ResumeSessionRequest) async throws -> ResumeSessionResponse
 
-    /// セッションとその履歴を削除する。
+    /// Deletes a session and its history.
     func deleteSession(_ request: DeleteSessionRequest) async throws -> DeleteSessionResponse
 
-    /// セッションを削除せずにクローズする。
+    /// Closes a session without deleting it, so it can be resumed later.
     func closeSession(_ request: CloseSessionRequest) async throws -> CloseSessionResponse
 
-    /// セッションの現在モードを切り替える。
+    /// Switches which mode the session is operating in.
     func setSessionMode(_ request: SetSessionModeRequest) async throws -> SetSessionModeResponse
 
-    /// セッション設定オプションを設定する。
+    /// Sets one of the session's configuration options.
     func setSessionConfigOption(
         _ request: SetSessionConfigOptionRequest
     ) async throws -> SetSessionConfigOptionResponse
 
-    /// プロンプトターンを実行する。エージェントは `session/update` 通知で進捗をストリームし、`StopReason` を返す。
+    /// Runs one turn.
+    ///
+    /// The agent streams its progress as `session/update` notifications on the client while this
+    /// call is outstanding, and returns a stop reason when the turn ends. A turn stopped by
+    /// `cancel(_:)` returns normally with `.cancelled`, not by throwing.
     func prompt(_ request: PromptRequest) async throws -> PromptResponse
 
-    /// セッションの進行中プロンプトターンをキャンセルする（通知のみ・応答なし）。
+    /// Asks the agent to stop the turn in progress.
+    ///
+    /// A notification: it has no reply, so a failure here reaches nobody. The turn's own `prompt`
+    /// call is what reports the outcome.
     func cancel(_ notification: CancelNotification) async throws
 
-    /// エージェントの認証済みセッションを終了する。
+    /// Ends the authenticated session with the agent.
     func logout(_ request: LogoutRequest) async throws -> LogoutResponse
 
-    /// 仕様外の拡張リクエストを処理する。
+    /// Handles a method the specification does not define.
+    ///
+    /// The stdio connection routes every unrecognized method here rather than answering
+    /// method-not-found, so an agent that does not want extensions should throw from this.
     func ext(_ request: ExtRequest) async throws -> ExtResponse
 
-    /// 仕様外の拡張通知を処理する。
+    /// Handles a notification the specification does not define. Has no reply.
     func extNotification(_ notification: ExtNotification) async throws
 }

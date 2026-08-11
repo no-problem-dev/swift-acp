@@ -1,49 +1,50 @@
-/// クライアントとエージェント間の会話セッションの一意識別子。
+/// Identifies one conversation between a client and an agent. Assigned by the agent.
 public struct SessionId: ACPStringNewType {
     public let rawValue: String
     public init(_ value: String) { rawValue = value }
 }
 
-/// セッション内のツール呼び出しの一意識別子。
+/// Identifies a tool call within its session, and is what ties an update to the call it revises.
 public struct ToolCallId: ACPStringNewType {
     public let rawValue: String
     public init(_ value: String) { rawValue = value }
 }
 
-/// セッション内のメッセージの一意識別子。
+/// Identifies a message within its session.
 ///
-/// 同一メッセージのチャンクはすべて同じ `MessageId` を共有し、
-/// 変化は新しいメッセージの開始を示す。
+/// Every chunk of one message carries the same value, so a change of identifier is what marks the
+/// start of a new message in a stream.
 public struct MessageId: ACPStringNewType {
     public let rawValue: String
     public init(_ value: String) { rawValue = value }
 }
 
-/// ユーザーに提示するパーミッションオプションの識別子。
+/// Identifies one of the choices offered in a permission request, and is what the response sends
+/// back.
 public struct PermissionOptionId: ACPStringNewType {
     public let rawValue: String
     public init(_ value: String) { rawValue = value }
 }
 
-/// セッションモード（例: "ask"、"code"）の識別子。
+/// Identifies a session mode, such as `ask` or `code`.
 public struct SessionModeId: ACPStringNewType {
     public let rawValue: String
     public init(_ value: String) { rawValue = value }
 }
 
-/// セッション設定オプションの識別子。
+/// Identifies a session configuration option.
 public struct SessionConfigId: ACPStringNewType {
     public let rawValue: String
     public init(_ value: String) { rawValue = value }
 }
 
-/// セッション設定オプショングループの識別子。
+/// Identifies a group of configuration values, for options whose choices are grouped.
 public struct SessionConfigGroupId: ACPStringNewType {
     public let rawValue: String
     public init(_ value: String) { rawValue = value }
 }
 
-/// セッション設定オプション内の値の識別子。
+/// Identifies one selectable value within a configuration option.
 public struct SessionConfigValueId: ACPStringNewType {
     public let rawValue: String
     public init(_ value: String) { rawValue = value }

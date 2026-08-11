@@ -1,6 +1,8 @@
-/// セッション設定オプションのセマンティックカテゴリ（UX 用途のみ）。
+/// What a configuration option is about, so a client can group or place it. Presentation only —
+/// nothing behaves differently.
 ///
-/// オープン列挙：未知のカテゴリはそのままデコードされる。`_` で始まる名前はカスタム用途に自由に使え、それ以外は ACP 仕様に予約される。
+/// Open: an unrecognized category decodes unchanged. Names beginning with `_` are free for private
+/// use; every other name is reserved for the specification.
 public struct SessionConfigOptionCategory: ACPStringNewType {
     public let rawValue: String
     public init(_ value: String) { rawValue = value }
@@ -10,7 +12,7 @@ public struct SessionConfigOptionCategory: ACPStringNewType {
     public static let thoughtLevel = SessionConfigOptionCategory("thought_level")
 }
 
-/// セッション設定オプションの候補値。
+/// One value a configuration option can be set to.
 public struct SessionConfigSelectOption: ACPSchemaType {
     public var value: SessionConfigValueId
     public var name: String
@@ -35,7 +37,7 @@ public struct SessionConfigSelectOption: ACPSchemaType {
     }
 }
 
-/// セッション設定オプションの候補値グループ。
+/// A named group of values, for options with enough choices to warrant sections.
 public struct SessionConfigSelectGroup: ACPSchemaType {
     public var group: SessionConfigGroupId
     public var name: String
@@ -60,7 +62,9 @@ public struct SessionConfigSelectGroup: ACPSchemaType {
     }
 }
 
-/// セッション設定オプションの候補値（タグなし：フラットなオプションリストまたはグループリスト）。
+/// The choices an option offers, either a flat list or a list of groups.
+///
+/// Untagged: decoding tries one shape and falls back to the other.
 public enum SessionConfigSelectOptions: ACPSchemaType {
     case ungrouped([SessionConfigSelectOption])
     case grouped([SessionConfigSelectGroup])
@@ -81,7 +85,7 @@ public enum SessionConfigSelectOptions: ACPSchemaType {
     }
 }
 
-/// 単一値セレクタ（ドロップダウン）のセッション設定オプションペイロード。
+/// An option the user picks exactly one value for.
 public struct SessionConfigSelect: ACPSchemaType {
     public var currentValue: SessionConfigValueId
     public var options: SessionConfigSelectOptions
@@ -92,12 +96,13 @@ public struct SessionConfigSelect: ACPSchemaType {
     }
 }
 
-/// セッション設定オプションのセレクタと現在の状態。
+/// One configuration option: what it is, what it offers, and where it stands.
 ///
-/// 型固有のペイロードがこのオブジェクトにフラット化され `type` で判別される。
-/// 安定した種別は `select` のみ。未知の `type` は `.unknown` として保持する。
+/// The type-specific payload is flattened into this object rather than nested, and discriminated
+/// by `type`. Only `select` is stable so far; an unrecognized type decodes to `.unknown` holding
+/// the original JSON, so it survives a round trip.
 public struct SessionConfigOption: ACPSchemaType {
-    /// 設定オプションの型固有フィールド。
+    /// The part of the option that depends on its kind.
     public enum Kind: Equatable, Sendable {
         case select(SessionConfigSelect)
         case unknown(type: String, raw: JSONValue)
@@ -162,7 +167,7 @@ public struct SessionConfigOption: ACPSchemaType {
     }
 }
 
-/// セッション設定オプションを設定するリクエストパラメータ。
+/// Sets one configuration option. The agent answers with the resulting state of every option.
 public struct SetSessionConfigOptionRequest: ACPSchemaType {
     public var sessionId: SessionId
     public var configId: SessionConfigId
@@ -187,7 +192,7 @@ public struct SetSessionConfigOptionRequest: ACPSchemaType {
     }
 }
 
-/// `session/set_config_option` メソッドへのレスポンス。
+/// The options as they stand after the change — not just the one that was set.
 public struct SetSessionConfigOptionResponse: ACPSchemaType {
     public var configOptions: [SessionConfigOption]
     public var meta: Meta?

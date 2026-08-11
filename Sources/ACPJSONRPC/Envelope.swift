@@ -1,12 +1,12 @@
-/// JSON-RPC プロトコルバージョンを示す sentinel 値。
+/// The `"jsonrpc"` field every JSON-RPC 2.0 message must carry.
 ///
-/// JSON-RPC 2.0 仕様はすべてのメッセージに `"jsonrpc": "2.0"` フィールドを要求する。
-/// この enum は唯一の既知値をモデル化し、正しくラウンドトリップすることを保証する。
+/// Modelled as an enum with one case so the value cannot be wrong on the way out, and so a message
+/// declaring any other version fails to decode rather than being processed as 2.0.
 public enum JSONRPCVersion: String, Codable, Sendable {
     case v2 = "2.0"
 }
 
-/// JSON-RPC リクエスト。`id`・`method`・省略可能な型付き `params` を持つ。
+/// A request: an id the peer must echo, a method name, and optional parameters.
 public struct JSONRPCRequest<Params: Codable & Sendable>: Codable, Sendable {
     public var jsonrpc: JSONRPCVersion
     public var id: RequestId
@@ -21,7 +21,9 @@ public struct JSONRPCRequest<Params: Codable & Sendable>: Codable, Sendable {
     }
 }
 
-/// JSON-RPC 通知。`method` と省略可能な型付き `params` を持ち、`id` も応答もない。
+/// A notification: a method name and optional parameters, with no id and therefore no reply.
+///
+/// A failure while handling one cannot be reported back to the sender.
 public struct JSONRPCNotification<Params: Codable & Sendable>: Codable, Sendable {
     public var jsonrpc: JSONRPCVersion
     public var method: String
@@ -34,7 +36,10 @@ public struct JSONRPCNotification<Params: Codable & Sendable>: Codable, Sendable
     }
 }
 
-/// JSON-RPC レスポンス。型付き `result` またはエラーを持ち、`id` でリクエストと対応付ける。
+/// A response, carrying either a result or an error, matched to its request by `id`.
+///
+/// Decoding checks `error` first: a message carrying both fields — which JSON-RPC forbids — is read
+/// as a failure and the result is dropped.
 public enum JSONRPCResponse<Result: Codable & Sendable>: Codable, Sendable {
     case success(id: RequestId, result: Result)
     case failure(id: RequestId, error: RPCError)

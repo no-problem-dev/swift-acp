@@ -1,14 +1,15 @@
-/// 大部分の ACP メッセージが持つオープンエンドな `_meta` オブジェクト。
+/// The open `_meta` object almost every ACP message carries.
 ///
-/// ACP がクライアントとエージェントの追加メタデータ添付のために予約する領域。
-/// 実装はそのキーについて何も仮定してはならない。
+/// ACP places no meaning on the contents, so two peers must agree out of band on what they put
+/// here. Assume nothing about keys you did not write.
 public typealias Meta = [String: JSONValue]
 
-/// 文字列バックの識別子またはオープン列挙型。
+/// A string-backed identifier or open enumeration.
 ///
-/// ACP の識別子（`SessionId`・`ToolCallId` 等）や文字列列挙（`Role`・`ToolKind` 等）は
-/// ワイヤーレベルで `non_exhaustive`。許容的な文字列 newtype として表現し、
-/// 既知値には名前付き定数を設ける。未知値は拒否せず保持するため前方互換を維持する。
+/// ACP marks these non-exhaustive on the wire, so a value this package does not know must not be
+/// rejected. Modelling them as permissive newtypes with named constants for the known values keeps
+/// an unrecognized value intact through a round trip — at the cost of `switch` never being
+/// exhaustive, so always handle the unknown case.
 public protocol ACPStringNewType:
     ACPSchemaType, RawRepresentable, Hashable, Comparable, ExpressibleByStringLiteral
 where RawValue == String {
@@ -31,12 +32,17 @@ public extension ACPStringNewType {
     }
 }
 
-/// 3 状態を区別するフィールド：キー省略（`.undefined`）・明示的 `null`・値あり（`.value`）。
+/// A field with three states rather than two: absent, explicitly null, or present with a value.
 ///
-/// ACP で `null` と "省略" が異なる意味を持つ箇所（例: `SessionInfoUpdate.title`：
-/// `null` はタイトルをクリア、省略は変更なし）で使用する。
-/// エンコード時は親型が `.undefined` のときキー自体を省略する責務を持つ。
-/// デコード時はキー不在 → `.undefined`、明示的 `null` → `.null`、それ以外 → `.value` に対応する。
+/// For the places where ACP gives `null` and "absent" different meanings — on
+/// `SessionInfoUpdate.title`, null clears the title while absence leaves it alone.
+///
+/// - Important: This type cannot omit its own key. Encoding `.undefined` writes `null`, which is
+///   the wrong thing; the containing type must check `isUndefined` and skip the key. Getting that
+///   wrong turns "leave unchanged" into "clear" with nothing failing.
+///
+/// Decoding is unambiguous: an absent key yields `.undefined`, an explicit null yields `.null`,
+/// anything else yields `.value`.
 public enum MaybeUndefined<Wrapped: Codable & Equatable & Sendable>: Codable, Equatable, Sendable {
     case undefined
     case null

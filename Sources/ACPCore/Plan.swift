@@ -1,4 +1,4 @@
-/// プランエントリの相対的な優先度。
+/// How important a plan entry is relative to the others. Open: unknown values decode unchanged.
 public struct PlanEntryPriority: ACPStringNewType {
     public let rawValue: String
     public init(_ value: String) { rawValue = value }
@@ -8,7 +8,7 @@ public struct PlanEntryPriority: ACPStringNewType {
     public static let low = PlanEntryPriority("low")
 }
 
-/// プランエントリの実行ステータス。
+/// Where a plan entry stands. Open: unknown values decode unchanged.
 public struct PlanEntryStatus: ACPStringNewType {
     public let rawValue: String
     public init(_ value: String) { rawValue = value }
@@ -18,7 +18,7 @@ public struct PlanEntryStatus: ACPStringNewType {
     public static let completed = PlanEntryStatus("completed")
 }
 
-/// 実行プランの1エントリ。エージェントが実行しようとするタスク。
+/// One task in the agent's plan.
 public struct PlanEntry: ACPSchemaType {
     public var content: String
     public var priority: PlanEntryPriority
@@ -43,9 +43,10 @@ public struct PlanEntry: ACPSchemaType {
     }
 }
 
-/// 複雑なタスクを達成するための実行プラン。
+/// The agent's plan for the work it is doing.
 ///
-/// 更新ごとにエントリの完全なリストを運ぶ。クライアントは更新のたびにプラン全体を置き換える。
+/// Every update carries the complete list, so a client replaces its copy wholesale rather than
+/// merging. Entries are not identified, so there is no way to track one across updates.
 public struct Plan: ACPSchemaType {
     public var entries: [PlanEntry]
     public var meta: Meta?
