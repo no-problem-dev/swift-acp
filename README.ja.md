@@ -81,7 +81,7 @@ dependencies: [
 
 | swift-acp | Swift | プラットフォーム | ACP |
 |---|---|---|---|
-| 0.x | 6.0+ | iOS 16+ · macOS 13+ · tvOS 16+ · watchOS 9+ · visionOS 1+ | schema 0.13.6 / protocol v1 |
+| 0.x | 6.0+ | iOS 16+ · macOS 13+ · tvOS 16+ · watchOS 9+ · visionOS 1+ · Linux | schema 0.13.6 / protocol v1 |
 
 テストは `swift test` で回る。
 
