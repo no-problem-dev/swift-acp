@@ -1,6 +1,6 @@
 # Architecture
 
-How the package is layered, and exactly what "conformant" is checked to mean.
+How the package is layered, and exactly what the test suite checks.
 
 ## Overview
 
@@ -29,7 +29,7 @@ The transport is deliberately the swappable part. An agent and a host are writte
 contracts alone; in-process the messages cross as Swift values with nothing encoded, and over stdio
 the same calls become JSON-RPC frames.
 
-## What conformance is checked to mean
+## What the test suite checks
 
 The specification is vendored, version-pinned, under `Tests/ACPConformanceTests/Spec/v1` — the
 schema crate at 0.13.6, protocol v1. Three independent checks run against it, and each states its

@@ -2,6 +2,8 @@
 
 Every type ACP v1 defines, as Codable Swift values with no I/O.
 
+> **Unofficial.** Not affiliated with or endorsed by the authors of the Agent Client Protocol. Conforming to the specification is not a goal of this project.
+
 ## Overview
 
 ACP is a bidirectional JSON-RPC channel between an agent — an LLM loop, an orchestrator, any
@@ -11,9 +13,9 @@ The file-system and terminal capabilities are optional bolt-ons the host lends, 
 usable as the progress plane for a non-coding agent as for a coding one.
 
 This module holds the vocabulary. Every type here mirrors one `$defs` entry of the pinned wire
-schema, and the conformance suite refuses to let the two drift apart: it requires an exact
+schema, and the test suite refuses to let the two drift apart: it requires an exact
 correspondence between schema definitions and modelled types, then round-trips the vendored wire
-samples through them.
+samples through them. <doc:Architecture> states what each check does and does not cover.
 
 The package splits into five libraries. `ACPJSONRPC` carries the envelope and is re-exported by
 this module, so `import ACPCore` is normally the only import you need. `ACPAgent` and `ACPClient`

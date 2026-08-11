@@ -20,7 +20,7 @@ open: `_meta`, extension methods, and MCP tool input and output. It is a concret
 `Any`, which is what keeps `Codable`, `Equatable` and `Sendable` intact all the way down. Numbers
 are `Double`, so an integer beyond 2^53 does not survive a round trip exactly.
 
-**``ACPSchemaType``.** The protocol that enrols a type in the conformance check. The suite reads
+**``ACPSchemaType``.** The protocol that enrols a type in the schema-coverage check. The suite reads
 the pinned schema, collects every type listed in ``ACPJSONRPCSchema`` and `ACPCoreSchema`, and
 requires the two sets to match exactly — then decodes and re-encodes the vendored wire samples
 through them. Adopting the protocol is not enough on its own: a type absent from those registries
