@@ -7,7 +7,7 @@ A Swift implementation of the [Agent Client Protocol](https://agentclientprotoco
 ![Swift 6.0+](https://img.shields.io/badge/Swift-6.0+-orange.svg)
 ![ACP v1](https://img.shields.io/badge/ACP-schema%200.13.6%20%2F%20v1-green.svg)
 ![Platforms](https://img.shields.io/badge/Platforms-iOS%2016+%20%7C%20macOS%2013+%20%7C%20tvOS%2016+%20%7C%20watchOS%209+%20%7C%20visionOS%201+-blue.svg)
-![License](https://img.shields.io/badge/License-MIT-yellow.svg)
+![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)
 
 ## Features
 
@@ -85,4 +85,4 @@ Run the conformance suite with `swift test`.
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+Apache-2.0, matching the reference protocol. See [LICENSE](LICENSE).
