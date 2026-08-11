@@ -64,7 +64,7 @@ try await connection.run()
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/no-problem-dev/swift-acp.git", from: "0.1.0")
+    .package(url: "https://github.com/no-problem-dev/swift-acp.git", .upToNextMinor(from: "0.2.0"))
 ]
 ```
 
