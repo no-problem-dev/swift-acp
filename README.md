@@ -13,7 +13,7 @@ A Swift implementation of the [Agent Client Protocol](https://agentclientprotoco
 
 ## Features
 
-- **The wire schema is vendored and version-pinned** — the test suite checks that each `$defs` entry has a modelled type, that the method tables match the registry, and that the vendored wire samples round-trip. What each check does and does not cover is written on the [Architecture](https://no-problem-dev.github.io/swift-acp/documentation/acpcore/architecture) page
+- **The wire schema is vendored and version-pinned** — the test suite checks that each `$defs` entry has a modelled type, that the method tables match the registry, and that the vendored wire samples round-trip. What each check does and does not cover is written on the [Architecture](Sources/ACPCore/Documentation.docc/Architecture.md) page
 - **Two transports, one agent** — write the agent once against a role contract; run it in-process with nothing serialized, or over stdio as JSON-RPC
 - **Forward-compatible by construction** — open string enumerations and `unknown` cases mean a peer on a newer revision does not break decoding, and unrecognized values re-encode unchanged
 - **Not just for coding agents** — the core is prompt, stream updates, cancel; file-system and terminal access are optional capabilities the host lends
@@ -53,10 +53,10 @@ try await connection.run()
 
 Each library has its own DocC page:
 
-- [ACPCore](https://no-problem-dev.github.io/swift-acp/documentation/acpcore/) — the domain types, and [Architecture](https://no-problem-dev.github.io/swift-acp/documentation/acpcore/architecture) for the layering and what the test suite checks
-- [ACPJSONRPC](https://no-problem-dev.github.io/swift-acp/documentation/acpjsonrpc/) — the envelope
-- [ACPAgent](https://no-problem-dev.github.io/swift-acp/documentation/acpagent/) · [ACPClient](https://no-problem-dev.github.io/swift-acp/documentation/acpclient/) — the two role contracts
-- [ACPTransport](https://no-problem-dev.github.io/swift-acp/documentation/acptransport/) — connecting them
+- [ACPCore](Sources/ACPCore/Documentation.docc) — the domain types, and [Architecture](Sources/ACPCore/Documentation.docc/Architecture.md) for the layering and what the test suite checks
+- [ACPJSONRPC](Sources/ACPJSONRPC/Documentation.docc) — the envelope
+- [ACPAgent](Sources/ACPAgent/Documentation.docc) · [ACPClient](Sources/ACPClient/Documentation.docc) — the two role contracts
+- [ACPTransport](Sources/ACPTransport/Documentation.docc) — connecting them
 
 ## Installation
 
